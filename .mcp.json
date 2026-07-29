@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "memorygraph_mcp": {
+      "command": "node",
+      "args": [
+        "./mcp/server.mjs"
+      ],
+      "cwd": "."
+    }
+  }
+}

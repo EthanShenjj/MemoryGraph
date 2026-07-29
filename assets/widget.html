@@ -1,0 +1,3593 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MemoryGraph</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f8f9fb;
+      --panel: #ffffff;
+      --panel-2: #f7f8fa;
+      --ink: #15171a;
+      --muted: #68707d;
+      --faint: #949ba7;
+      --line: #e2e5ea;
+      --line-strong: #c8cdd5;
+      --blue: #246bfd;
+      --blue-soft: #edf3ff;
+      --green: #14815e;
+      --green-soft: #e9f6f0;
+      --amber: #a96608;
+      --amber-soft: #fff5e7;
+      --pink: #a63d70;
+      --pink-soft: #fbe7f1;
+      --shadow: 0 8px 24px rgba(28, 35, 48, 0.08);
+      --shadow-strong: 0 14px 36px rgba(28, 35, 48, 0.12);
+      --node-w: 256px;
+      --node-h: 136px;
+      --detail-width: 410px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #17191d;
+        --panel: #202329;
+        --panel-2: #262a31;
+        --ink: #f3f4f6;
+        --muted: #a9afb9;
+        --faint: #7d838d;
+        --line: #363b44;
+        --line-strong: #4a505b;
+        --blue: #7ba1ff;
+        --blue-soft: #263554;
+        --green: #5bc69d;
+        --green-soft: #203d33;
+        --amber: #e9ad56;
+        --amber-soft: #49361f;
+        --pink: #e98ab7;
+        --pink-soft: #492b3c;
+        --shadow: 0 8px 26px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible,
+    input:focus-visible,
+    [role="button"]:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 2px;
+    }
+
+    .app {
+      height: 100vh;
+      position: relative;
+      display: grid;
+      grid-template:
+        "header header header" 56px
+        "rail canvas detail" minmax(0, 1fr)
+        / 264px minmax(460px, 1fr) var(--detail-width);
+    }
+
+    .app.resizing-detail,
+    .app.resizing-detail * {
+      cursor: col-resize !important;
+      user-select: none !important;
+    }
+
+    .header {
+      grid-area: header;
+      display: grid;
+      grid-template-columns: 248px minmax(320px, 650px) minmax(300px, 1fr);
+      gap: 16px;
+      align-items: center;
+      padding: 0 18px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      overflow: hidden;
+      flex: 0 0 auto;
+      border-radius: 6px;
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.65);
+    }
+
+    .brand-copy { min-width: 0; }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 740;
+      line-height: 18px;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .search {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 11px;
+      border: 1px solid var(--line);
+      background: #fafbfc;
+      border-radius: 6px;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    .search:focus-within {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 16%, transparent);
+    }
+
+    .search span {
+      color: var(--muted);
+      font-size: 15px;
+      transform: translateY(-1px);
+    }
+
+    .search input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      color: var(--ink);
+      background: transparent;
+      font-size: 13px;
+    }
+
+    .search input::placeholder { color: var(--faint); }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .header-metrics {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
+      overflow: hidden;
+    }
+
+    .metric {
+      flex: 0 0 auto;
+      padding: 0 8px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      border-radius: 0;
+      color: var(--muted);
+      background: transparent;
+      font-size: 9px;
+      font-weight: 680;
+      white-space: nowrap;
+    }
+
+    .metric strong {
+      margin-right: 2px;
+      color: var(--ink);
+      font-weight: 760;
+    }
+
+    .metric:last-child { border-right: 0; }
+
+    .icon-button {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .icon-button:hover {
+      background: var(--panel-2);
+      border-color: var(--line);
+    }
+
+    .rail {
+      grid-area: rail;
+      min-width: 0;
+      overflow: auto;
+      padding: 14px 12px 24px;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+    }
+
+    .section-label {
+      margin: 3px 8px 8px;
+      color: var(--faint);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .filter-list {
+      display: grid;
+      gap: 3px;
+      margin-bottom: 20px;
+    }
+
+    .filter {
+      width: 100%;
+      height: 34px;
+      display: grid;
+      grid-template-columns: 12px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 0 8px;
+      border: 0;
+      border-radius: 5px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .filter:hover { background: var(--panel-2); color: var(--ink); }
+    .filter.active { background: var(--blue-soft); color: var(--blue); }
+
+    .filter .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--dot, var(--line-strong));
+    }
+
+    .filter.project-row {
+      height: 38px;
+      color: var(--ink);
+      font-weight: 700;
+      background: #f5f6f8;
+    }
+
+    .filter.task-row {
+      padding-left: 24px;
+    }
+
+    .folder-icon {
+      position: relative;
+      width: 13px;
+      height: 10px;
+      border: 1.5px solid currentColor;
+      border-radius: 2px;
+    }
+
+    .folder-icon::before {
+      content: "";
+      position: absolute;
+      left: 1px;
+      top: -4px;
+      width: 6px;
+      height: 4px;
+      border: 1.5px solid currentColor;
+      border-bottom: 0;
+      border-radius: 2px 2px 0 0;
+      background: var(--panel-2);
+    }
+
+    .filter .name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 590;
+    }
+
+    .filter .count {
+      color: var(--faint);
+      font-size: 11px;
+    }
+
+    .legend {
+      display: grid;
+      gap: 9px;
+      padding: 4px 8px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .rail-group {
+      margin: 0 0 16px;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .rail-group + .rail-group {
+      margin-top: -17px;
+      border-top: 0;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .edge-sample {
+      width: 28px;
+      height: 0;
+      border-top: 2px solid var(--line-strong);
+    }
+
+    .edge-sample.inferred { border-top-style: dashed; }
+    .edge-sample.related { border-top-style: dotted; opacity: 0.7; }
+
+    .stats {
+      margin-top: 18px;
+      padding: 10px;
+      background: transparent;
+      border: 0;
+      border-top: 1px solid var(--line);
+      border-radius: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .stats strong { color: var(--ink); }
+
+    .canvas-shell {
+      grid-area: canvas;
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      background-color: #fbfcfd;
+      background-image: radial-gradient(#dfe3e9 0.55px, transparent 0.55px);
+      background-size: 22px 22px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .canvas-shell.dragging { cursor: grabbing; }
+    .canvas-shell.results-mode {
+      cursor: default;
+      user-select: text;
+      background-image: none;
+      background-color: var(--panel-2);
+    }
+
+    .world {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2000px;
+      height: 1200px;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .view-switcher {
+      position: absolute;
+      left: 16px;
+      top: 14px;
+      z-index: 10;
+      display: flex;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: color-mix(in srgb, var(--panel) 96%, transparent);
+      box-shadow: 0 2px 8px rgba(30, 35, 45, 0.05);
+    }
+
+    .view-button {
+      min-width: 66px;
+      height: 28px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 5px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 680;
+    }
+
+    .view-button.active {
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .view-button:disabled {
+      cursor: default;
+      opacity: 0.45;
+    }
+
+    .result-view {
+      position: absolute;
+      inset: 54px 0 0;
+      z-index: 5;
+      overflow: auto;
+      padding: 22px clamp(20px, 4vw, 54px) 46px;
+      background: var(--panel-2);
+      user-select: text;
+    }
+
+    .result-view[hidden] { display: none; }
+
+    .result-view-inner {
+      width: min(820px, 100%);
+      margin: 0 auto;
+    }
+
+    .result-view-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .result-view-head h2 {
+      margin: 0 0 5px;
+      font-size: 19px;
+      line-height: 1.3;
+    }
+
+    .result-view-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .recall-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .recall-action {
+      min-height: 58px;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--ink);
+      background: var(--panel);
+      cursor: pointer;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 680;
+      line-height: 1.35;
+    }
+
+    .recall-action span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 500;
+    }
+
+    .recall-action:hover {
+      border-color: color-mix(in srgb, var(--blue) 45%, var(--line));
+      background: var(--blue-soft);
+    }
+
+    .result-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .result-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: start;
+      width: 100%;
+      padding: 14px 14px 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: 0 2px 7px rgba(30, 35, 45, 0.04);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .result-card:hover,
+    .result-card.active {
+      border-color: color-mix(in srgb, var(--blue) 55%, var(--line));
+      box-shadow: 0 6px 18px rgba(30, 35, 45, 0.08);
+    }
+
+    .result-rank {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      color: var(--blue);
+      background: var(--blue-soft);
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .result-card-main { min-width: 0; }
+
+    .result-source {
+      margin-bottom: 5px;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 9px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .result-card-title {
+      margin: 0 0 5px;
+      font-size: 13px;
+      font-weight: 720;
+      line-height: 1.4;
+    }
+
+    .result-excerpt {
+      margin: 0;
+      display: -webkit-box;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    mark {
+      padding: 0 1px;
+      border-radius: 2px;
+      color: inherit;
+      background: #ffe7a8;
+    }
+
+    .result-score {
+      padding: 3px 6px;
+      border-radius: 4px;
+      color: #8a5400;
+      background: var(--amber-soft);
+      font-size: 9px;
+      font-weight: 730;
+      white-space: nowrap;
+    }
+
+    .result-score.correct {
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .result-score.incorrect {
+      color: #a33a3a;
+      background: #fff0f0;
+    }
+
+    .result-empty {
+      padding: 42px 18px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 8px;
+      color: var(--muted);
+      background: var(--panel);
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .edges {
+      position: absolute;
+      inset: 0;
+      width: 2000px;
+      height: 1200px;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .edge {
+      fill: none;
+      stroke: var(--line-strong);
+      stroke-width: 1.8;
+      marker-end: url(#arrow);
+    }
+
+    .edge.membership {
+      stroke: var(--line-strong);
+      stroke-width: 1.5;
+    }
+
+    .edge.fork {
+      stroke: #7950c8;
+      stroke-width: 2.6;
+    }
+
+    .edge.shared-prefix {
+      stroke: var(--green);
+      stroke-dasharray: 7 5;
+      marker-end: none;
+    }
+
+    .edge.continuation {
+      stroke: var(--blue);
+      stroke-dasharray: 7 5;
+    }
+
+    .edge.related {
+      stroke: var(--faint);
+      stroke-dasharray: 2 6;
+      stroke-width: 1.4;
+      opacity: 0.75;
+      marker-end: none;
+    }
+
+    .edge-label {
+      fill: var(--muted);
+      paint-order: stroke;
+      stroke: var(--bg);
+      stroke-width: 4px;
+      stroke-linejoin: round;
+      font-size: 10px;
+      pointer-events: none;
+    }
+    .edge-label.dimmed { opacity: 0.12; }
+
+    .edge.dimmed { opacity: 0.12; }
+    .edge.highlighted { stroke-width: 2.4; opacity: 1; }
+
+    .node {
+      position: absolute;
+      width: var(--node-w);
+      height: var(--node-h);
+      padding: 14px 15px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: 0 2px 7px rgba(30, 35, 45, 0.045);
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      transition: opacity 120ms ease, border-color 120ms ease, box-shadow 120ms ease,
+        transform 120ms ease;
+    }
+
+    .node:hover {
+      border-color: #b8bec8;
+      box-shadow: var(--shadow);
+      transform: translateY(-1px);
+    }
+
+    .node.dragging-node {
+      z-index: 6;
+      cursor: grabbing;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 14%, transparent), var(--shadow);
+      transition: none;
+      transform: none;
+    }
+
+    .node.dimmed { opacity: 0.46; }
+    .node.dimmed:hover { opacity: 0.82; }
+    .node.hidden-cluster { display: none; }
+    .node.record {
+      border-top-width: 4px;
+      background: color-mix(in srgb, var(--amber-soft) 42%, var(--panel));
+    }
+
+    .node.project-node {
+      border-top-width: 1px;
+      border-color: #a9c2ff;
+      background: #f7f9ff;
+    }
+
+    .node.task-node {
+      border-top-color: var(--line);
+    }
+
+    .node.has-record-match {
+      border-color: #d8b47a;
+      box-shadow: 0 2px 8px rgba(108, 69, 13, 0.08);
+    }
+
+    .node.selected,
+    .node.has-record-match.selected {
+      z-index: 4;
+      border-color: var(--blue);
+      border-width: 2px;
+      background: var(--panel);
+      box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--blue) 10%, transparent),
+        0 8px 22px rgba(36, 107, 253, 0.12);
+    }
+
+    .node-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 9px;
+    }
+
+    .node-head-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .selected-label {
+      display: none;
+      padding: 2px 6px;
+      border-radius: 999px;
+      color: var(--blue);
+      background: var(--blue-soft);
+      font-size: 8px;
+      font-weight: 760;
+      line-height: 1.4;
+    }
+
+    .node.selected .selected-label {
+      display: inline-flex;
+    }
+
+    .context-label {
+      display: none;
+      padding: 2px 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--panel-2);
+      font-size: 8px;
+      font-weight: 720;
+      line-height: 1.4;
+    }
+
+    .node.dimmed .context-label { display: inline-flex; }
+    .node.dimmed .status-dot { display: none; }
+
+    .kind {
+      color: var(--accent, var(--blue));
+      font-size: 10px;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--line-strong);
+    }
+
+    .status-dot.active { background: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+    .status-dot.idle { background: var(--blue); }
+
+    .node-title {
+      margin: 0 0 7px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      font-size: 13px;
+      font-weight: 710;
+      line-height: 1.4;
+    }
+
+    .node-summary {
+      margin: 0;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .node-related-count {
+      position: absolute;
+      left: 15px;
+      bottom: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      color: var(--muted);
+      background: color-mix(in srgb, var(--panel) 92%, transparent);
+      font-size: 8.5px;
+      font-weight: 650;
+      line-height: 1.4;
+    }
+
+    .node-related-count.has-messages {
+      border-color: color-mix(in srgb, var(--amber) 42%, var(--line));
+      color: #8a5400;
+      background: var(--amber-soft);
+    }
+
+    .node-match-rank {
+      position: absolute;
+      right: 15px;
+      bottom: 11px;
+      color: var(--faint);
+      font-size: 8px;
+      font-weight: 700;
+    }
+
+    .node.selected .node-related-count {
+      border-color: color-mix(in srgb, var(--blue) 38%, var(--line));
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .node.task-node .node-summary {
+      padding-bottom: 20px;
+    }
+
+    .canvas-toolbar {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      z-index: 8;
+      display: flex;
+      gap: 2px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .layer-controls {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      z-index: 8;
+      display: flex;
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      box-shadow: 0 2px 8px rgba(28, 35, 48, 0.06);
+    }
+
+    .layer-control {
+      min-height: 28px;
+      padding: 5px 9px;
+      border: 0;
+      border-radius: 5px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 680;
+    }
+
+    .layer-control:hover { color: var(--ink); background: var(--panel-2); }
+    .layer-control.active {
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .canvas-toolbar .icon-button { width: 32px; height: 30px; }
+
+    .result-pill {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      z-index: 8;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--muted);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      font-size: 11px;
+      pointer-events: none;
+    }
+
+    .detail {
+      grid-area: detail;
+      min-width: 0;
+      overflow: auto;
+      padding: 0 22px 32px;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+    }
+
+    .detail-resizer {
+      position: absolute;
+      top: 56px;
+      right: calc(var(--detail-width) - 6px);
+      bottom: 0;
+      z-index: 24;
+      width: 12px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: col-resize;
+      touch-action: none;
+    }
+
+    .detail-resizer::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 5px;
+      width: 2px;
+      background: transparent;
+      transition: background 120ms ease, box-shadow 120ms ease;
+    }
+
+    .detail-resizer:hover::before,
+    .detail-resizer:focus-visible::before,
+    .detail-resizer.dragging::before {
+      background: var(--blue);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 12%, transparent);
+    }
+
+    .empty-detail {
+      height: 100%;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .empty-detail div { max-width: 180px; }
+
+    .detail-content[hidden], .empty-detail[hidden] { display: none; }
+    .detail-switch[hidden],
+    .tags[hidden],
+    .graph-guide[hidden],
+    .meta[hidden] { display: none; }
+
+    .detail-switch {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      display: flex;
+      gap: 26px;
+      min-height: 60px;
+      align-items: stretch;
+      margin: 0 -22px;
+      padding: 0 22px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 97%, transparent);
+    }
+
+    .detail-switch-button {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 2px;
+      border: 0;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 690;
+    }
+
+    .detail-switch-button.active { color: var(--blue); }
+
+    .detail-switch-button.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: var(--blue);
+    }
+
+    .detail-switch-button:disabled {
+      cursor: default;
+      opacity: 0.45;
+    }
+
+    .detail-switch-count {
+      color: var(--faint);
+      font-size: 12px;
+    }
+
+    .detail-kind {
+      margin-top: 22px;
+      margin-bottom: 8px;
+      color: var(--accent, var(--blue));
+      font-size: 11px;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+
+    .detail h2 {
+      margin: 0 0 9px;
+      font-size: 22px;
+      line-height: 1.35;
+    }
+
+    .detail-summary {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+      user-select: text;
+    }
+
+    .record-section {
+      display: grid;
+      gap: 12px;
+      margin: 0 0 17px;
+    }
+
+    .record-section[hidden] { display: none; }
+
+    .record-block {
+      min-width: 0;
+    }
+
+    .record-label {
+      margin-bottom: 6px;
+      color: var(--faint);
+      font-size: 12px;
+      font-weight: 720;
+      text-transform: uppercase;
+    }
+
+    .record-prompt,
+    .record-content {
+      margin: 0;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--ink);
+      background: var(--panel-2);
+      font-size: 14px;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      user-select: text;
+    }
+
+    .record-prompt {
+      border-left: 3px solid var(--blue);
+    }
+
+    .record-content {
+      max-height: 48vh;
+      overflow: auto;
+      border-left: 0;
+      background: var(--panel);
+      font-family: inherit;
+      white-space: normal;
+    }
+
+    .record-content > :first-child { margin-top: 0; }
+    .record-content > :last-child { margin-bottom: 0; }
+
+    .record-content p {
+      margin: 0 0 10px;
+    }
+
+    .record-content h1,
+    .record-content h2,
+    .record-content h3,
+    .record-content h4,
+    .record-content h5,
+    .record-content h6 {
+      margin: 16px 0 7px;
+      color: var(--ink);
+      line-height: 1.35;
+    }
+
+    .record-content h1 { font-size: 20px; }
+    .record-content h2 { font-size: 18px; }
+    .record-content h3 { font-size: 16px; }
+    .record-content h4,
+    .record-content h5,
+    .record-content h6 { font-size: 14px; }
+
+    .record-content ul,
+    .record-content ol {
+      margin: 0 0 10px;
+      padding-left: 22px;
+    }
+
+    .record-content li + li {
+      margin-top: 4px;
+    }
+
+    .record-content blockquote {
+      margin: 0 0 10px;
+      padding: 7px 10px;
+      border-left: 3px solid var(--blue);
+      color: var(--muted);
+      background: color-mix(in srgb, var(--blue) 6%, transparent);
+    }
+
+    .record-content pre {
+      margin: 0 0 10px;
+      padding: 9px 10px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--ink) 5%, var(--panel));
+      font: 12.5px/1.65 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      white-space: pre;
+    }
+
+    .record-content code {
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--ink) 7%, transparent);
+      font: 0.94em/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .record-content pre code {
+      padding: 0;
+      background: transparent;
+      font: inherit;
+    }
+
+    .record-content a {
+      color: var(--blue);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 2px;
+    }
+
+    .record-content table {
+      width: 100%;
+      margin: 0 0 10px;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    .record-content th,
+    .record-content td {
+      padding: 6px 7px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .record-content th {
+      background: color-mix(in srgb, var(--ink) 5%, var(--panel));
+      font-weight: 720;
+    }
+
+    .record-content hr {
+      margin: 14px 0;
+      border: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .content-section {
+      margin: 0 0 16px;
+    }
+
+    .content-section[hidden] { display: none; }
+
+    .content-empty {
+      margin: 0 0 18px;
+      padding: 18px 16px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 7px;
+      color: var(--muted);
+      background: var(--panel-2);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .content-empty[hidden] { display: none; }
+
+    .content-tabs {
+      display: grid;
+      gap: 5px;
+      max-height: 190px;
+      padding-right: 3px;
+      overflow: auto;
+    }
+
+    .content-tab {
+      min-height: 40px;
+      display: grid;
+      grid-template-columns: 68px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: var(--ink);
+      background: var(--panel);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .content-tab:hover { border-color: var(--line-strong); }
+    .content-tab.active { border-color: var(--blue); background: var(--blue-soft); }
+    .content-tab .tab-kind { color: var(--muted); font-size: 10px; font-weight: 720; }
+    .content-tab .tab-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12.5px;
+      font-weight: 650;
+    }
+
+    .content-tab .tab-state {
+      padding: 2px 5px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--panel);
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .content-tab .tab-state.exact {
+      color: #8a5400;
+      background: var(--amber-soft);
+    }
+
+    .match-reason {
+      margin: 0 0 16px;
+      padding: 9px 10px;
+      border-left: 3px solid var(--amber);
+      background: #fffaf1;
+      color: var(--ink);
+      font-size: 12.5px;
+      line-height: 1.6;
+    }
+
+    .evidence-panel {
+      margin: 0 0 16px;
+      padding: 10px 11px;
+      border: 1px solid color-mix(in srgb, var(--amber) 28%, var(--line));
+      border-radius: 7px;
+      background: var(--amber-soft);
+    }
+
+    .evidence-panel[hidden],
+    .feedback-row[hidden],
+    .memory-review[hidden] { display: none; }
+
+    .evidence-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 7px;
+      color: #7d4d00;
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .evidence-location {
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 600;
+    }
+
+    .evidence-text {
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+      user-select: text;
+    }
+
+    .feedback-row,
+    .memory-review {
+      margin: -6px 0 16px;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel);
+    }
+
+    .feedback-title,
+    .memory-review-title {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .feedback-actions,
+    .memory-review-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .feedback-button,
+    .memory-review-button {
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: var(--ink);
+      background: var(--panel-2);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .feedback-button.active.correct,
+    .memory-review-button.active.confirmed {
+      border-color: color-mix(in srgb, var(--green) 50%, var(--line));
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .feedback-button.active.incorrect,
+    .memory-review-button.active.rejected {
+      border-color: #e1a3a3;
+      color: #a33a3a;
+      background: #fff0f0;
+    }
+
+    .memory-review-state {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 17px;
+    }
+
+    .tag {
+      padding: 3px 6px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      color: var(--muted);
+      background: var(--panel-2);
+      font-size: 11px;
+    }
+
+    .graph-guide {
+      margin: 0 0 17px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel);
+    }
+
+    .graph-guide summary {
+      padding: 12px 13px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 720;
+      list-style-position: inside;
+      user-select: none;
+    }
+
+    .graph-guide[open] summary {
+      border-bottom: 1px solid var(--line);
+      color: var(--ink);
+    }
+
+    .guide-body {
+      display: grid;
+      gap: 9px;
+      padding: 13px;
+    }
+
+    .graph-guide .record-label { margin: 5px 0 1px; }
+    .graph-guide .record-label:first-child { margin-top: 0; }
+
+    .guide-row {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.55;
+    }
+
+    .guide-row strong {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .guide-node {
+      width: 36px;
+      height: 19px;
+      border: 1px solid var(--line-strong);
+      border-top: 2px solid var(--amber);
+      border-radius: 4px;
+      background: var(--panel);
+      box-shadow: 0 1px 3px rgba(30, 35, 45, 0.07);
+    }
+
+    .guide-node.context { opacity: 0.22; }
+
+    .guide-line {
+      width: 41px;
+      height: 0;
+      border-top: 2px solid var(--line-strong);
+    }
+
+    .guide-line.fork { border-top: 3px solid #7950c8; }
+    .guide-line.continuation { border-top: 2px dashed var(--blue); }
+    .guide-line.shared-prefix { border-top: 2px dashed var(--green); }
+    .guide-line.related { border-top: 2px dotted var(--faint); }
+
+    .meta {
+      display: grid;
+      gap: 11px;
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: 90px minmax(0, 1fr);
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+
+    .meta-row .value {
+      color: var(--ink);
+      overflow-wrap: anywhere;
+      user-select: text;
+    }
+
+    .detail-actions {
+      display: grid;
+      gap: 7px;
+      margin-top: 16px;
+    }
+
+    .action {
+      min-height: 38px;
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--ink);
+      background: var(--panel-2);
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 650;
+    }
+
+    .action:hover { border-color: var(--line-strong); }
+    .action.primary { border-color: var(--blue); color: #fff; background: #2f6bff; }
+    .action.continue { color: var(--blue); background: var(--blue-soft); }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 50;
+      max-width: min(380px, calc(100vw - 32px));
+      padding: 9px 12px;
+      border-radius: 6px;
+      color: var(--ink);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      font-size: 11px;
+      opacity: 0;
+      transform: translate(-50%, 10px);
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template:
+          "header header" 56px
+          "canvas detail" minmax(0, 1fr)
+          / minmax(340px, 1fr) var(--detail-width);
+      }
+      .header { grid-template-columns: 180px minmax(240px, 1fr) auto; }
+      .header-metrics { display: none; }
+      .rail { display: none; }
+      .result-view { padding-left: 22px; padding-right: 22px; }
+    }
+
+    @media (max-width: 650px) {
+      .app {
+        grid-template:
+          "header" 102px
+          "canvas" minmax(0, 1fr)
+          / 1fr;
+      }
+      .header {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: 48px 44px;
+      }
+      .search { grid-column: 1 / -1; grid-row: 2; }
+      .result-view {
+        inset: 52px 0 0;
+        padding: 16px 14px 110px;
+      }
+      .result-view-head { align-items: start; }
+      .recall-actions { grid-template-columns: 1fr; }
+      .result-card {
+        grid-template-columns: 30px minmax(0, 1fr);
+      }
+      .result-score {
+        grid-column: 2;
+        justify-self: start;
+      }
+      .detail {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        z-index: 15;
+        max-height: 48vh;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        transform: translateY(calc(100% + 24px));
+        transition: transform 160ms ease;
+      }
+      .detail-resizer { display: none; }
+      .detail.open { transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-mark"><img src="./memorygraph-mark.png" alt="" /></div>
+        <div class="brand-copy">
+          <h1 id="graphTitle">MemoryGraph</h1>
+          <p id="graphScope">当前项目</p>
+        </div>
+      </div>
+      <label class="search">
+        <span aria-hidden="true">⌕</span>
+        <input id="searchInput" type="search" autocomplete="off"
+          placeholder="搜索方案、决策、文件或关键词" aria-label="搜索会话" />
+      </label>
+      <div class="header-actions">
+        <div class="header-metrics" id="headerMetrics"></div>
+        <button class="icon-button" id="refreshButton" title="让 Codex 刷新图谱" aria-label="刷新">↻</button>
+        <button class="icon-button" id="fullscreenButton" title="全屏" aria-label="全屏">⛶</button>
+      </div>
+    </header>
+
+    <aside class="rail">
+      <div class="section-label">项目结构</div>
+      <div class="filter-list" id="clusterFilters"></div>
+
+      <div class="rail-group">
+        <div class="section-label">任务结构</div>
+        <div class="legend">
+          <div class="legend-row"><span class="edge-sample"></span><span>属于项目</span></div>
+          <div class="legend-row"><span class="edge-sample" style="border-color:#7950c8"></span><span>明确分支</span></div>
+          <div class="legend-row"><span class="edge-sample inferred" style="border-color:var(--blue)"></span><span>继续讨论</span></div>
+          <div class="legend-row"><span class="edge-sample inferred" style="border-color:var(--green)"></span><span>共享对话前缀</span></div>
+        </div>
+      </div>
+
+      <div class="rail-group">
+        <div class="section-label">内容关联</div>
+        <div class="legend">
+          <div class="legend-row"><span class="edge-sample related"></span><span>相似内容，不代表先后关系</span></div>
+        </div>
+      </div>
+
+      <div class="stats" id="stats"></div>
+    </aside>
+
+    <main class="canvas-shell" id="canvas">
+      <div class="view-switcher" id="viewSwitcher" aria-label="主视图">
+        <button class="view-button active" data-canvas-mode="results" aria-pressed="true">结果</button>
+        <button class="view-button" data-canvas-mode="graph" aria-pressed="false">图谱</button>
+      </div>
+      <section class="result-view" id="resultView">
+        <div class="result-view-inner">
+          <div class="result-view-head">
+            <div>
+              <h2 id="resultViewTitle">找到的原始记录</h2>
+              <p id="resultViewSummary">先确认原始记录，再通过图谱理解任务关系。</p>
+            </div>
+          </div>
+          <div class="recall-actions" aria-label="项目续接">
+            <button class="recall-action" data-recall-action="resume">
+              恢复上次进度
+              <span>找出最近任务、结论和下一步</span>
+            </button>
+            <button class="recall-action" data-recall-action="decisions">
+              汇总最近决策
+              <span>只返回有来源的项目决定</span>
+            </button>
+            <button class="recall-action" data-recall-action="open-questions">
+              整理未解决问题
+              <span>定位仍待确认的事项</span>
+            </button>
+          </div>
+          <div class="result-list" id="resultList"></div>
+        </div>
+      </section>
+      <div class="world" id="world">
+        <svg class="edges" id="edges" viewBox="0 0 2000 1200" aria-hidden="true">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5"
+              markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"></path>
+            </marker>
+          </defs>
+        </svg>
+        <div id="nodes"></div>
+      </div>
+      <div class="layer-controls" aria-label="图谱显示层">
+        <button class="layer-control active" data-layer="task" aria-pressed="true">任务结构</button>
+        <button class="layer-control active" data-layer="content" aria-pressed="true">内容关联</button>
+      </div>
+      <div class="result-pill" id="resultPill"></div>
+      <div class="canvas-toolbar">
+        <button class="icon-button" id="zoomOut" title="缩小" aria-label="缩小">−</button>
+        <button class="icon-button" id="fitView" title="适应画布" aria-label="适应画布">⌾</button>
+        <button class="icon-button" id="zoomIn" title="放大" aria-label="放大">＋</button>
+      </div>
+    </main>
+
+    <button class="detail-resizer" id="detailResizer" type="button"
+      role="separator" aria-orientation="vertical" aria-label="调整右侧详情栏宽度"
+      aria-valuemin="320" aria-valuemax="720" aria-valuenow="410"
+      title="拖拽调整详情栏宽度，双击恢复默认"></button>
+
+    <aside class="detail" id="detail">
+      <div class="empty-detail" id="emptyDetail"><div>选择一个任务，再查看原始记录、候选记忆、证据与上下文。</div></div>
+      <div class="detail-content" id="detailContent" hidden>
+        <div class="detail-switch" id="detailSwitch">
+          <button class="detail-switch-button active" data-content-kind="record" aria-pressed="true">
+            原始记录 <span class="detail-switch-count" id="recordTabCount">0</span>
+          </button>
+          <button class="detail-switch-button" data-content-kind="memory" aria-pressed="false">
+            候选记忆 <span class="detail-switch-count" id="memoryTabCount">0</span>
+          </button>
+          <button class="detail-switch-button" data-content-kind="log" aria-pressed="false">
+            日志
+          </button>
+        </div>
+        <div class="detail-kind" id="detailKind"></div>
+        <h2 id="detailTitle"></h2>
+        <p class="detail-summary" id="detailSummary"></p>
+        <div class="match-reason" id="matchReason" hidden></div>
+        <section class="evidence-panel" id="evidencePanel" hidden>
+          <div class="evidence-head">
+            <span>命中证据</span>
+            <span class="evidence-location" id="evidenceLocation"></span>
+          </div>
+          <div class="evidence-text" id="evidenceText"></div>
+        </section>
+        <section class="feedback-row" id="feedbackRow" hidden>
+          <div class="feedback-title">这条记录找对了吗？反馈只保存在本地。</div>
+          <div class="feedback-actions">
+            <button class="feedback-button correct" data-feedback="correct">找对了</button>
+            <button class="feedback-button incorrect" data-feedback="incorrect">不是这条</button>
+          </div>
+        </section>
+        <section class="memory-review" id="memoryReview" hidden>
+          <div class="memory-review-title">审核候选记忆</div>
+          <div class="memory-review-actions">
+            <button class="memory-review-button confirmed" data-memory-review="confirmed">确认记忆</button>
+            <button class="memory-review-button rejected" data-memory-review="rejected">否决</button>
+            <button class="memory-review-button candidate" data-memory-review="candidate">恢复候选</button>
+          </div>
+          <div class="memory-review-state" id="memoryReviewState"></div>
+        </section>
+        <div class="tags" id="detailTags"></div>
+        <details class="graph-guide" id="graphGuide">
+          <summary>图谱关系说明</summary>
+          <div class="guide-body">
+            <div class="record-label">任务结构</div>
+            <div class="guide-row">
+              <span class="guide-node" aria-hidden="true"></span>
+              <span><strong>拖拽节点</strong>：可调整布局，连线会实时跟随。</span>
+            </div>
+            <div class="guide-row">
+              <span class="guide-node context" aria-hidden="true"></span>
+              <span><strong>上下文任务</strong>：帮助理解关系，但不是当前直接命中。</span>
+            </div>
+            <div class="guide-row">
+              <span class="guide-line" aria-hidden="true"></span>
+              <span><strong>灰色实线</strong>：项目包含这个任务。</span>
+            </div>
+            <div class="guide-row">
+              <span class="guide-line fork" aria-hidden="true"></span>
+              <span><strong>紫色实线</strong>：元数据确认的明确分支。</span>
+            </div>
+            <div class="guide-row">
+              <span class="guide-line continuation" aria-hidden="true"></span>
+              <span><strong>蓝色虚线</strong>：有证据表明后一个任务继续讨论。</span>
+            </div>
+            <div class="guide-row">
+              <span class="guide-line shared-prefix" aria-hidden="true"></span>
+              <span><strong>绿色虚线</strong>：共享对话前缀，但仍是并列任务。</span>
+            </div>
+            <div class="record-label">内容关联</div>
+            <div class="guide-row">
+              <span class="guide-line related" aria-hidden="true"></span>
+              <span><strong>灰色点线</strong>：内容相似，不表达先后、继承或分支。</span>
+            </div>
+            <div class="guide-row">
+              <span class="guide-node" aria-hidden="true"></span>
+              <span><strong>记录与记忆</strong>：原始记录是证据，候选记忆是提炼结果。</span>
+            </div>
+          </div>
+        </details>
+        <section class="content-section" id="contentSection" hidden>
+          <div class="record-label" id="contentSectionLabel">任务中的原始记录</div>
+          <div class="content-tabs" id="contentTabs"></div>
+        </section>
+        <div class="content-empty" id="contentEmpty" hidden></div>
+        <section class="record-section" id="recordSection" hidden>
+          <div class="record-block" id="promptBlock" hidden>
+            <div class="record-label">上一条用户消息</div>
+            <div class="record-prompt" id="sourcePrompt"></div>
+          </div>
+          <div class="record-block" id="contentBlock" hidden>
+            <div class="record-label" id="contentBlockLabel">原始回答</div>
+            <div class="record-content" id="recordContent"></div>
+          </div>
+        </section>
+        <div class="meta" id="logSection" hidden>
+          <div class="meta-row"><span>状态</span><span class="value" id="detailStatus"></span></div>
+          <div class="meta-row"><span>记录时间</span><span class="value" id="detailTime"></span></div>
+          <div class="meta-row" id="sourceTitleRow"><span>来源任务</span><span class="value" id="sourceTitle"></span></div>
+          <div class="meta-row" id="sourceThreadRow"><span>任务 ID</span><span class="value" id="sourceThreadId"></span></div>
+          <div class="meta-row" id="sourceTurnRow"><span>Turn ID</span><span class="value" id="sourceTurnId"></span></div>
+          <div class="meta-row" id="sourceRoleRow"><span>消息角色</span><span class="value" id="sourceRole"></span></div>
+          <div class="meta-row" id="duplicateRow"><span>日志去重</span><span class="value" id="duplicateCount"></span></div>
+          <div class="meta-row" id="copiesRow"><span>来源副本</span><span class="value" id="sourceCopies"></span></div>
+          <div class="meta-row" id="memoryTypeRow"><span>记忆类型</span><span class="value" id="memoryType"></span></div>
+          <div class="meta-row" id="memoryStatusRow"><span>记忆状态</span><span class="value" id="memoryStatus"></span></div>
+          <div class="meta-row" id="evidenceTypeRow"><span>提取依据</span><span class="value" id="evidenceType"></span></div>
+          <div class="meta-row" id="memoryConfidenceRow"><span>提取置信度</span><span class="value" id="memoryConfidence"></span></div>
+          <div class="meta-row"><span>节点 ID</span><span class="value" id="detailId"></span></div>
+          <div class="meta-row"><span>工作目录</span><span class="value" id="detailCwd"></span></div>
+        </div>
+        <div class="detail-actions">
+          <button class="action primary" id="openTask">打开来源任务</button>
+          <button class="action continue" id="continueWithRecord">带着这条记录继续</button>
+          <button class="action" id="copyRecord">复制原始回答</button>
+          <button class="action" id="inspectTask">查看这条记录的上下文</button>
+          <button class="action" id="copyTaskTitle">复制任务名称</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const demoGraph = {
+        version: 1,
+        title: "会话图谱",
+        scope: "ta-common-service",
+        query: "",
+        mode: "project",
+        generatedAt: new Date().toISOString(),
+        rootProjectId: "project-ta-common-service",
+        retrieval: {
+          strategy: "record-first",
+          scannedTasks: 6,
+          candidateTasks: 2,
+          scannedRecords: 38,
+          deduplicatedRecords: 31,
+          exactMatches: 1,
+          semanticMatches: 2
+        },
+        nodes: [
+          {
+            id: "project-ta-common-service",
+            title: "ta-common-service",
+            summary: "当前 Codex 项目 · 5 个任务",
+            kind: "project", status: "active", cluster: "项目",
+            tags: ["项目"], updatedAt: Date.now(),
+            cwd: "/project/ta-common-service"
+          },
+          {
+            id: "thread-root",
+            title: "梳理数据范围的产品逻辑",
+            summary: "定义用户筛选与事件筛选如何组合，并识别当前表达的歧义。",
+            kind: "thread", status: "idle", cluster: "数据范围",
+            tags: ["PRD", "筛选逻辑"], updatedAt: Date.now() - 86400000 * 6,
+            cwd: "/project/ta-common-service"
+          },
+          {
+            id: "thread-branch-a",
+            title: "方案 A：顶层 AND / OR",
+            summary: "保留两个独立筛选区，用顶层操作符决定交集或并集。",
+            kind: "thread", status: "idle", cluster: "数据范围",
+            tags: ["方案 A", "AND/OR"], updatedAt: Date.now() - 86400000 * 5,
+            cwd: "/project/ta-common-service"
+          },
+          {
+            id: "record-default-and",
+            title: "原始回答：默认组合方式",
+            summary: "保留用户问题与完整回答，并绑定来源任务和 Turn。",
+            content: "建议默认使用 AND，因为大多数用户是在逐步缩小数据范围。需要并集时，再显式切换为 OR。",
+            kind: "record", status: "found", cluster: "原始记录",
+            tags: ["原始回答", "AND", "决策依据"],
+            updatedAt: Date.now() - 86400000 * 4,
+            matchReason: "包含“默认组合方式”的原始回答",
+            matchType: "exact",
+            matchScore: 0.98,
+            source: {
+              threadId: "thread-branch-a",
+              turnId: "turn-default-and",
+              threadTitle: "方案 A：顶层 AND / OR",
+              role: "assistant",
+              timestamp: Date.now() - 86400000 * 4,
+              prompt: "默认应该用 AND 还是 OR？",
+              excerpt: "建议默认使用 AND",
+              duplicateCount: 2,
+              cwd: "/project/ta-common-service"
+            }
+          },
+          {
+            id: "decision-a",
+            title: "决策：默认使用 AND",
+            summary: "默认缩小数据范围，同时让高级用户显式切换到 OR。",
+            kind: "decision", status: "accepted", cluster: "数据范围",
+            tags: ["决策"], updatedAt: Date.now() - 86400000 * 4,
+            matchReason: "由原始回答提炼出的最终结论",
+            matchType: "semantic",
+            matchScore: 0.91,
+            source: {
+              threadId: "thread-branch-a",
+              turnId: "turn-default-and",
+              threadTitle: "方案 A：顶层 AND / OR",
+              role: "assistant",
+              prompt: "默认应该用 AND 还是 OR？",
+              excerpt: "建议默认使用 AND",
+              duplicateCount: 2,
+              cwd: "/project/ta-common-service"
+            }
+          },
+          {
+            id: "thread-branch-b",
+            title: "方案 B：拆为两个独立入口",
+            summary: "把用户范围和事件范围拆开，降低单个配置器的认知负担。",
+            kind: "thread", status: "idle", cluster: "交互方案",
+            tags: ["方案 B", "信息架构"], updatedAt: Date.now() - 86400000 * 5,
+            cwd: "/project/ta-common-service"
+          },
+          {
+            id: "artifact-flow",
+            title: "数据范围交互流程图",
+            summary: "记录配置、预览、保存和二次编辑的完整状态流转。",
+            kind: "artifact", status: "ready", cluster: "交互方案",
+            tags: ["流程图", "原型"], updatedAt: Date.now() - 86400000 * 3
+          },
+          {
+            id: "thread-sql",
+            title: "验证 restricted_event 的 SQL 语义",
+            summary: "确认 INNER JOIN 形成的交集与产品中的 AND 表达一致。",
+            kind: "thread", status: "idle", cluster: "技术验证",
+            tags: ["SQL", "restricted_event"], updatedAt: Date.now() - 86400000 * 3,
+            cwd: "/project/ta-common-service"
+          },
+          {
+            id: "thread-union",
+            title: "用 UNION 实现事件或用户命中",
+            summary: "评估 OR 语义下的查询改造、去重成本和性能风险。",
+            kind: "thread", status: "active", cluster: "技术验证",
+            tags: ["UNION", "性能"], updatedAt: Date.now() - 3600000 * 6,
+            cwd: "/project/ta-common-service"
+          },
+          {
+            id: "milestone",
+            title: "PRD v2 可评审",
+            summary: "产品表达与 SQL 实现已经对齐，遗留问题进入风险清单。",
+            kind: "milestone", status: "ready", cluster: "交付",
+            tags: ["里程碑", "PRD"], updatedAt: Date.now() - 3600000
+          }
+        ],
+        edges: [
+          { id: "m1", source: "project-ta-common-service", target: "thread-root", type: "membership", confidence: 1 },
+          { id: "m2", source: "project-ta-common-service", target: "thread-branch-a", type: "membership", confidence: 1 },
+          { id: "m3", source: "project-ta-common-service", target: "thread-branch-b", type: "membership", confidence: 1 },
+          { id: "m4", source: "project-ta-common-service", target: "thread-sql", type: "membership", confidence: 1 },
+          { id: "m5", source: "project-ta-common-service", target: "thread-union", type: "membership", confidence: 1 },
+          { id: "e1", source: "thread-root", target: "thread-branch-a", type: "fork", confidence: 1 },
+          { id: "e2", source: "thread-root", target: "thread-branch-b", type: "fork", confidence: 1 },
+          { id: "e3", source: "thread-branch-a", target: "record-default-and", type: "contains", confidence: 1 },
+          { id: "e3b", source: "record-default-and", target: "decision-a", type: "derived", confidence: 0.98 },
+          { id: "e4", source: "thread-branch-b", target: "artifact-flow", type: "continuation", confidence: 0.84 },
+          { id: "e5", source: "decision-a", target: "thread-sql", type: "shared-prefix", confidence: 0.78 },
+          { id: "e6", source: "thread-sql", target: "thread-union", type: "fork", confidence: 1 },
+          { id: "e7", source: "artifact-flow", target: "milestone", type: "related", confidence: 0.63 },
+          { id: "e8", source: "thread-union", target: "milestone", type: "continuation", confidence: 0.9 }
+        ]
+      };
+
+      const palette = [
+        ["#2f6bff", "#e9efff"],
+        ["#17825e", "#e4f5ed"],
+        ["#a85f00", "#fff0d8"],
+        ["#a63d70", "#fbe7f1"],
+        ["#6156b8", "#eceafd"],
+        ["#39757a", "#e3f3f2"]
+      ];
+
+      const kindLabels = {
+        project: "项目",
+        record: "原始记录",
+        memory: "候选记忆",
+        thread: "任务",
+        decision: "决策",
+        artifact: "产物",
+        milestone: "里程碑"
+      };
+      const matchLabels = {
+        exact: "精确匹配",
+        semantic: "语义匹配",
+        context: "上下文"
+      };
+      const roleLabels = {
+        user: "用户",
+        assistant: "AI",
+        system: "系统"
+      };
+      const memoryTypeLabels = {
+        decision: "决策",
+        fact: "事实",
+        requirement: "需求",
+        "open-question": "待回答问题",
+        plan: "计划",
+        definition: "定义",
+        insight: "洞察"
+      };
+      const memoryStatusLabels = {
+        candidate: "候选（待确认）",
+        confirmed: "已确认",
+        corrected: "已修正",
+        superseded: "已被替代",
+        rejected: "已否决"
+      };
+      const evidenceTypeLabels = {
+        "explicit-statement": "原回答中的明确陈述",
+        inferred: "模型推断",
+        manual: "用户手动创建"
+      };
+      const NODE_WIDTH = 256;
+      const NODE_HEIGHT = 136;
+
+      const state = {
+        graph: demoGraph,
+        positions: new Map(),
+        selectedId: null,
+        selectedContentId: null,
+        contentKind: "record",
+        canvasMode: "results",
+        query: "",
+        transform: { x: 60, y: 50, scale: 0.88 },
+        dragging: false,
+        dragStart: null,
+        nodeDrag: null,
+        detailWidth: 410,
+        detailResize: null,
+        suppressClickId: null,
+        visibleLayers: new Set(["task", "content"])
+      };
+
+      const el = (id) => document.getElementById(id);
+      const app = document.querySelector(".app");
+      const canvas = el("canvas");
+      const world = el("world");
+      const edgesLayer = el("edges");
+      const nodesLayer = el("nodes");
+      const detail = el("detail");
+      const detailResizer = el("detailResizer");
+      let toastTimer = null;
+
+      const DETAIL_WIDTH_KEY = "memorygraph-detail-width:v1";
+      const DETAIL_WIDTH_DEFAULT = 410;
+      const DETAIL_WIDTH_MIN = 320;
+      const DETAIL_WIDTH_MAX = 720;
+
+      function detailWidthBounds() {
+        const railWidth = window.innerWidth <= 900 ? 0 : 264;
+        const canvasMinimum = window.innerWidth <= 900 ? 340 : 460;
+        const available = window.innerWidth - railWidth - canvasMinimum;
+        return {
+          min: DETAIL_WIDTH_MIN,
+          max: Math.max(DETAIL_WIDTH_MIN, Math.min(DETAIL_WIDTH_MAX, available))
+        };
+      }
+
+      function storeDetailWidth(width) {
+        try {
+          localStorage.setItem(DETAIL_WIDTH_KEY, String(Math.round(width)));
+        } catch {
+          // File previews and embedded widgets may disable local storage.
+        }
+      }
+
+      function applyDetailWidth(width, { persist = false } = {}) {
+        const bounds = detailWidthBounds();
+        const next = Math.max(bounds.min, Math.min(bounds.max, Number(width) || DETAIL_WIDTH_DEFAULT));
+        state.detailWidth = next;
+        app.style.setProperty("--detail-width", `${next}px`);
+        detailResizer.setAttribute("aria-valuemin", String(bounds.min));
+        detailResizer.setAttribute("aria-valuemax", String(bounds.max));
+        detailResizer.setAttribute("aria-valuenow", String(Math.round(next)));
+        if (persist) storeDetailWidth(next);
+        requestAnimationFrame(applyTransform);
+      }
+
+      function restoreDetailWidth() {
+        let saved = DETAIL_WIDTH_DEFAULT;
+        try {
+          saved = Number(localStorage.getItem(DETAIL_WIDTH_KEY)) || DETAIL_WIDTH_DEFAULT;
+        } catch {
+          saved = DETAIL_WIDTH_DEFAULT;
+        }
+        applyDetailWidth(saved);
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function inlineMarkdown(value) {
+        const protectedHtml = [];
+        const protect = (html) => {
+          const token = `\u0001MD${protectedHtml.length}\u0001`;
+          protectedHtml.push(html);
+          return token;
+        };
+
+        let text = String(value ?? "").replace(/`([^`\n]+)`/g, (_, code) =>
+          protect(`<code>${escapeHtml(code)}</code>`));
+
+        text = text.replace(/\[([^\]\n]+)\]\((https?:\/\/[^)\s]+)\)/g, (_, label, href) =>
+          protect(`<a href="${escapeHtml(href)}" target="_blank" rel="noreferrer noopener">${escapeHtml(label)}</a>`));
+
+        text = escapeHtml(text)
+          .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
+          .replace(/__([^_\n]+)__/g, "<strong>$1</strong>")
+          .replace(/(^|[\s(])\*([^*\n]+)\*(?=$|[\s).,!?:;，。！？：；）])/g, "$1<em>$2</em>")
+          .replace(/(^|[\s(])_([^_\n]+)_(?=$|[\s).,!?:;，。！？：；）])/g, "$1<em>$2</em>");
+
+        return text.replace(/\u0001MD(\d+)\u0001/g, (_, index) =>
+          protectedHtml[Number(index)] || "");
+      }
+
+      function splitTableRow(line) {
+        return line.trim()
+          .replace(/^\|/, "")
+          .replace(/\|$/, "")
+          .split("|")
+          .map((cell) => cell.trim());
+      }
+
+      function isTableDivider(line) {
+        const cells = splitTableRow(line);
+        return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+      }
+
+      function renderMarkdown(value) {
+        const lines = String(value ?? "").replace(/\r\n?/g, "\n").split("\n");
+        const output = [];
+        let paragraph = [];
+        let quote = [];
+        let listType = "";
+        let listItems = [];
+        let codeFence = false;
+        let codeLanguage = "";
+        let codeLines = [];
+
+        const flushParagraph = () => {
+          if (!paragraph.length) return;
+          output.push(`<p>${paragraph.map(inlineMarkdown).join("<br>")}</p>`);
+          paragraph = [];
+        };
+        const flushQuote = () => {
+          if (!quote.length) return;
+          output.push(`<blockquote>${quote.map(inlineMarkdown).join("<br>")}</blockquote>`);
+          quote = [];
+        };
+        const flushList = () => {
+          if (!listItems.length) return;
+          output.push(`<${listType}>${listItems.map((item) =>
+            `<li>${inlineMarkdown(item)}</li>`).join("")}</${listType}>`);
+          listType = "";
+          listItems = [];
+        };
+        const flushFlow = () => {
+          flushParagraph();
+          flushQuote();
+          flushList();
+        };
+        const flushCode = () => {
+          const language = codeLanguage
+            ? ` data-language="${escapeHtml(codeLanguage)}"`
+            : "";
+          output.push(`<pre><code${language}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+          codeFence = false;
+          codeLanguage = "";
+          codeLines = [];
+        };
+
+        for (let index = 0; index < lines.length; index += 1) {
+          const line = lines[index];
+          const fence = line.match(/^```([\w-]*)\s*$/);
+
+          if (codeFence) {
+            if (fence) flushCode();
+            else codeLines.push(line);
+            continue;
+          }
+
+          if (fence) {
+            flushFlow();
+            codeFence = true;
+            codeLanguage = fence[1] || "";
+            continue;
+          }
+
+          if (!line.trim()) {
+            flushFlow();
+            continue;
+          }
+
+          if (line.includes("|") && index + 1 < lines.length && isTableDivider(lines[index + 1])) {
+            flushFlow();
+            const headers = splitTableRow(line);
+            const rows = [];
+            index += 2;
+            while (index < lines.length && lines[index].trim() && lines[index].includes("|")) {
+              rows.push(splitTableRow(lines[index]));
+              index += 1;
+            }
+            index -= 1;
+            output.push(`<table><thead><tr>${headers.map((cell) =>
+              `<th>${inlineMarkdown(cell)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) =>
+              `<tr>${headers.map((_, cellIndex) =>
+                `<td>${inlineMarkdown(row[cellIndex] || "")}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
+            continue;
+          }
+
+          const heading = line.match(/^(#{1,6})\s+(.+)$/);
+          if (heading) {
+            flushFlow();
+            const level = heading[1].length;
+            output.push(`<h${level}>${inlineMarkdown(heading[2])}</h${level}>`);
+            continue;
+          }
+
+          if (/^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
+            flushFlow();
+            output.push("<hr>");
+            continue;
+          }
+
+          const blockquote = line.match(/^\s*>\s?(.*)$/);
+          if (blockquote) {
+            flushParagraph();
+            flushList();
+            quote.push(blockquote[1]);
+            continue;
+          }
+
+          const unordered = line.match(/^\s*[-+*]\s+(.+)$/);
+          const ordered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+          if (unordered || ordered) {
+            flushParagraph();
+            flushQuote();
+            const nextType = unordered ? "ul" : "ol";
+            if (listType && listType !== nextType) flushList();
+            listType = nextType;
+            listItems.push((unordered || ordered)[1]);
+            continue;
+          }
+
+          flushQuote();
+          flushList();
+          paragraph.push(line);
+        }
+
+        if (codeFence) flushCode();
+        flushFlow();
+        return output.join("");
+      }
+
+      function highlightText(value, query = state.query.trim()) {
+        const text = String(value || "");
+        const needle = String(query || "").trim();
+        if (!needle) return escapeHtml(text);
+        const lower = text.toLocaleLowerCase();
+        const target = needle.toLocaleLowerCase();
+        let cursor = 0;
+        let index = lower.indexOf(target);
+        if (index < 0) return escapeHtml(text);
+        const output = [];
+        while (index >= 0) {
+          output.push(escapeHtml(text.slice(cursor, index)));
+          output.push(`<mark>${escapeHtml(text.slice(index, index + needle.length))}</mark>`);
+          cursor = index + needle.length;
+          index = lower.indexOf(target, cursor);
+        }
+        output.push(escapeHtml(text.slice(cursor)));
+        return output.join("");
+      }
+
+      function excerptAround(value, query, radius = 86) {
+        const text = String(value || "").replace(/\s+/g, " ").trim();
+        if (!text) return "";
+        const index = text.toLocaleLowerCase().indexOf(String(query || "").toLocaleLowerCase());
+        if (index < 0) return text.slice(0, radius * 2) + (text.length > radius * 2 ? "…" : "");
+        const start = Math.max(0, index - radius);
+        const end = Math.min(text.length, index + String(query || "").length + radius);
+        return `${start > 0 ? "…" : ""}${text.slice(start, end)}${end < text.length ? "…" : ""}`;
+      }
+
+      function evidenceFor(record) {
+        if (!record) return null;
+        const query = state.query.trim() || String(state.graph.query || "").trim();
+        const source = record.source || {};
+        const fields = [
+          ["上一条用户消息", source.prompt],
+          ["原始回答", record.content],
+          ["来源任务标题", source.threadTitle],
+        ];
+        for (const [location, value] of fields) {
+          if (query && String(value || "").toLocaleLowerCase().includes(query.toLocaleLowerCase())) {
+            return {
+              location: `${location} · ${matchLabels[record.matchType] || "匹配"}`,
+              text: excerptAround(value, query),
+              query,
+            };
+          }
+        }
+        const fallback = source.excerpt || record.content || record.summary || record.matchReason;
+        if (!fallback) return null;
+        return {
+          location: `${record.matchType === "semantic" ? "语义证据" : "来源摘录"} · ${
+            Number.isFinite(Number(record.matchScore)) ? `${Math.round(Number(record.matchScore) * 100)}%` : "待核验"
+          }`,
+          text: excerptAround(fallback, ""),
+          query: "",
+        };
+      }
+
+      function matchingRecords() {
+        const query = state.query.trim().toLocaleLowerCase();
+        return state.graph.nodes
+          .filter((node) => node.kind === "record" && (!query || nodeHasQueryMatch(node, query)))
+          .sort((a, b) => {
+            const feedback = Number(b.userFeedback === "correct") - Number(a.userFeedback === "correct") ||
+              Number(a.userFeedback === "incorrect") - Number(b.userFeedback === "incorrect");
+            const exact = Number(b.matchType === "exact") - Number(a.matchType === "exact");
+            return feedback || exact || Number(b.matchScore || 0) - Number(a.matchScore || 0);
+          });
+      }
+
+      function renderResults() {
+        const records = matchingRecords();
+        const query = state.query.trim() || state.graph.query || "";
+        el("resultViewTitle").textContent = query ? `“${query}”的原始记录` : "项目原始记录";
+        el("resultViewSummary").textContent = records.length
+          ? `${records.length} 条记录 · 优先展示精确命中和用户确认结果`
+          : "没有可信原始记录。换一个关键词，或明确返回未找到。";
+        el("resultList").innerHTML = records.length
+          ? records.slice(0, 12).map((record, index) => {
+            const owner = state.graph.nodes.find((node) => node.id === ownerThreadId(record));
+            const evidence = evidenceFor(record);
+            const statusClass = record.userFeedback || "";
+            const statusText = record.userFeedback === "correct"
+              ? "已确认"
+              : record.userFeedback === "incorrect"
+                ? "已排除"
+                : `${Math.round(Number(record.matchScore || 0) * 100)}%`;
+            return `<button class="result-card ${state.selectedContentId === record.id ? "active" : ""}"
+              data-record-id="${escapeHtml(record.id)}" data-thread-id="${escapeHtml(ownerThreadId(record))}">
+              <span class="result-rank">${index + 1}</span>
+              <span class="result-card-main">
+                <span class="result-source">${escapeHtml(owner?.title || record.source?.threadTitle || "未知来源任务")}</span>
+                <span class="result-card-title">${highlightText(record.title, query)}</span>
+                <span class="result-excerpt">${highlightText(evidence?.text || record.summary || "", query)}</span>
+              </span>
+              <span class="result-score ${escapeHtml(statusClass)}">${escapeHtml(statusText)}</span>
+            </button>`;
+          }).join("")
+          : `<div class="result-empty">没有找到可验证的原始记录。<br>MemoryGraph 不会为填满结果而生成一条看似合理的答案。</div>`;
+
+        el("resultList").querySelectorAll(".result-card").forEach((button) => {
+          button.addEventListener("click", () => {
+            state.selectedId = button.dataset.threadId;
+            state.selectedContentId = button.dataset.recordId;
+            state.contentKind = "record";
+            renderNodes();
+            renderFilters();
+            renderDetail();
+            renderResults();
+            detail.classList.add("open");
+          });
+        });
+      }
+
+      function setCanvasMode(mode) {
+        const next = mode === "graph" ? "graph" : "results";
+        state.canvasMode = next;
+        const results = next === "results";
+        el("resultView").hidden = !results;
+        world.hidden = results;
+        document.querySelector(".layer-controls").hidden = results;
+        document.querySelector(".canvas-toolbar").hidden = results;
+        el("resultPill").hidden = results;
+        canvas.classList.toggle("results-mode", results);
+        document.querySelectorAll(".view-button").forEach((button) => {
+          const active = button.dataset.canvasMode === next;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+        if (!results) requestAnimationFrame(applyTransform);
+      }
+
+      function primaryNodes() {
+        return state.graph.nodes.filter((node) => node.kind === "project" || node.kind === "thread");
+      }
+
+      function primaryEdges() {
+        const ids = new Set(primaryNodes().map((node) => node.id));
+        return state.graph.edges.filter((edge) => ids.has(edge.source) && ids.has(edge.target));
+      }
+
+      function edgeLayer(edge) {
+        if (edge?.layer === "task" || edge?.layer === "content") return edge.layer;
+        return ["membership", "fork", "shared-prefix", "continuation"].includes(edge?.type)
+          ? "task"
+          : "content";
+      }
+
+      function projectNode() {
+        return state.graph.nodes.find((node) =>
+          node.id === state.graph.rootProjectId || node.kind === "project");
+      }
+
+      function ownerThreadId(node) {
+        if (!node) return "";
+        if (node.kind === "thread") return node.id;
+        if (node.source?.threadId) return node.source.threadId;
+        const contains = state.graph.edges.find((edge) =>
+          edge.target === node.id && edge.type === "contains");
+        return contains?.source || "";
+      }
+
+      function taskContents(threadId) {
+        return state.graph.nodes
+          .filter((node) =>
+            node.kind !== "project" &&
+            node.kind !== "thread" &&
+            ownerThreadId(node) === threadId)
+          .sort((a, b) => {
+            const feedbackFirst = Number(b.userFeedback === "correct") - Number(a.userFeedback === "correct") ||
+              Number(a.userFeedback === "incorrect") - Number(b.userFeedback === "incorrect");
+            const recordFirst = Number(b.kind === "record") - Number(a.kind === "record");
+            const exactFirst = Number(b.matchType === "exact") - Number(a.matchType === "exact");
+            return feedbackFirst || recordFirst || exactFirst ||
+              Number(b.matchScore || 0) - Number(a.matchScore || 0);
+          });
+      }
+
+      function nodeHasQueryMatch(node, query = state.query.trim().toLocaleLowerCase()) {
+        if (!query) return Boolean(node.matchReason);
+        const originalQuery = String(state.graph.query || "").trim().toLocaleLowerCase();
+        const isOriginalQuery = Boolean(originalQuery) && query === originalQuery;
+        if (isOriginalQuery && node.matchReason &&
+            (node.matchType === "exact" || node.matchType === "semantic")) {
+          return true;
+        }
+        return searchableText(node).includes(query);
+      }
+
+      function layoutGraph() {
+        const nodes = primaryNodes();
+        const nodeById = new Map(nodes.map((node) => [node.id, node]));
+        const incoming = new Map(nodes.map((node) => [node.id, []]));
+        const outgoing = new Map(nodes.map((node) => [node.id, []]));
+        const structuralEdges = primaryEdges().filter((edge) =>
+          edgeLayer(edge) === "task" &&
+          edge.direction !== "symmetric" &&
+          ["membership", "fork", "continuation"].includes(edge.type));
+
+        for (const edge of structuralEdges) {
+          if (!nodeById.has(edge.source) || !nodeById.has(edge.target)) continue;
+          incoming.get(edge.target).push(edge);
+          outgoing.get(edge.source).push(edge);
+        }
+
+        const depth = new Map();
+        const roots = nodes.filter((node) => incoming.get(node.id).length === 0);
+        const queue = (roots.length ? roots : nodes.slice(0, 1)).map((node) => {
+          depth.set(node.id, 0);
+          return node.id;
+        });
+
+        while (queue.length) {
+          const source = queue.shift();
+          const sourceDepth = depth.get(source) || 0;
+          for (const edge of outgoing.get(source) || []) {
+            const nextDepth = Math.max(depth.get(edge.target) || 0, sourceDepth + 1);
+            if (nextDepth !== depth.get(edge.target)) {
+              depth.set(edge.target, nextDepth);
+              if (nextDepth < 12) queue.push(edge.target);
+            }
+          }
+        }
+
+        for (const node of nodes) {
+          if (!depth.has(node.id)) depth.set(node.id, 0);
+        }
+
+        const columns = new Map();
+        for (const node of nodes) {
+          const d = Math.min(depth.get(node.id), 8);
+          if (!columns.has(d)) columns.set(d, []);
+          columns.get(d).push(node);
+        }
+
+        state.positions.clear();
+        const xGap = 338;
+        const yGap = 164;
+        const sortedDepths = [...columns.keys()].sort((a, b) => a - b);
+        let maxRows = 1;
+
+        for (const d of sortedDepths) {
+          const column = columns.get(d).sort((a, b) => {
+            const matchDelta = Number(Boolean(b.matchReason)) - Number(Boolean(a.matchReason));
+            if (matchDelta) return matchDelta;
+            const clusterDelta = (a.cluster || "").localeCompare(b.cluster || "");
+            if (clusterDelta) return clusterDelta;
+            return Number(a.updatedAt || 0) - Number(b.updatedAt || 0);
+          });
+          maxRows = Math.max(maxRows, column.length);
+          column.forEach((node, index) => {
+            state.positions.set(node.id, {
+              x: 90 + d * xGap,
+              y: 62 + index * yGap,
+              color: node.kind === "project"
+                ? ["#2f6bff", "#e9efff"]
+                : ["#566170", "#edf0f3"]
+            });
+          });
+        }
+
+        const width = Math.max(1100, 180 + (Math.max(...sortedDepths, 0) + 1) * xGap);
+        const height = Math.max(720, 130 + maxRows * yGap);
+        world.style.width = `${width}px`;
+        world.style.height = `${height}px`;
+        edgesLayer.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        edgesLayer.style.width = `${width}px`;
+        edgesLayer.style.height = `${height}px`;
+        world.dataset.width = width;
+        world.dataset.height = height;
+      }
+
+      function renderGraph() {
+        layoutGraph();
+        renderNodes();
+        renderEdges();
+        renderFilters();
+        renderStats();
+        renderHeaderMetrics();
+        updateSearch();
+        renderDetail();
+        renderResults();
+        setCanvasMode(state.canvasMode);
+        applyTransform();
+      }
+
+      function renderNodes() {
+        nodesLayer.innerHTML = primaryNodes().map((node) => {
+          const pos = state.positions.get(node.id);
+          const accent = pos?.color?.[0] || "#2f6bff";
+          const contentMatches = node.kind === "thread"
+            ? taskContents(node.id).filter((content) => content.matchReason).length
+            : 0;
+          const bestRank = node.kind === "thread"
+            ? taskContents(node.id)
+              .flatMap((content) => (content.tags || []).map((tag) => String(tag).match(/^Top\s+(\d+)$/i)?.[1]))
+              .filter(Boolean)
+              .map(Number)
+              .sort((a, b) => a - b)[0]
+            : null;
+          return `
+            <article class="node ${node.kind === "project" ? "project-node" : "task-node"} ${contentMatches ? "has-record-match" : ""} ${state.selectedId === node.id ? "selected" : ""}" data-id="${escapeHtml(node.id)}" title="${escapeHtml(node.title)}"
+              style="left:${pos.x}px;top:${pos.y}px;--accent:${accent}"
+              tabindex="0" role="button" aria-label="${escapeHtml(node.title)}" aria-pressed="${state.selectedId === node.id}">
+              <div class="node-head">
+                <span class="kind">${escapeHtml(kindLabels[node.kind] || "任务")}</span>
+                <span class="node-head-meta">
+                  <span class="selected-label">已选中</span>
+                  <span class="context-label">上下文</span>
+                  <span class="status-dot ${escapeHtml(node.status || "")}"></span>
+                </span>
+              </div>
+              <h3 class="node-title">${escapeHtml(node.title)}</h3>
+              <p class="node-summary">${escapeHtml(node.summary || "暂无摘要")}</p>
+              ${node.kind === "thread"
+                ? `<span class="node-related-count ${contentMatches ? "has-messages" : ""}" title="${contentMatches} 条与当前检索相关的消息">${contentMatches ? `命中 ${contentMatches} 条` : "无直接命中"}</span>
+                  ${bestRank ? `<span class="node-match-rank">Top ${bestRank}</span>` : ""}`
+                : ""}
+            </article>`;
+        }).join("");
+
+        nodesLayer.querySelectorAll(".node").forEach((nodeElement) => {
+          const select = (event) => {
+            event.stopPropagation();
+            if (state.suppressClickId === nodeElement.dataset.id) {
+              state.suppressClickId = null;
+              return;
+            }
+            selectNode(nodeElement.dataset.id);
+          };
+          nodeElement.addEventListener("click", select);
+          nodeElement.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") select(event);
+          });
+          nodeElement.addEventListener("pointerdown", beginNodeDrag);
+          nodeElement.addEventListener("pointermove", moveNodeDrag);
+          nodeElement.addEventListener("pointerup", endNodeDrag);
+          nodeElement.addEventListener("pointercancel", endNodeDrag);
+        });
+      }
+
+      function beginNodeDrag(event) {
+        if (event.button !== 0) return;
+        const nodeElement = event.currentTarget;
+        const position = state.positions.get(nodeElement.dataset.id);
+        if (!position) return;
+        event.preventDefault();
+        event.stopPropagation();
+        state.nodeDrag = {
+          id: nodeElement.dataset.id,
+          pointerId: event.pointerId,
+          pointerX: event.clientX,
+          pointerY: event.clientY,
+          x: position.x,
+          y: position.y,
+          moved: false,
+          element: nodeElement
+        };
+        nodeElement.setPointerCapture(event.pointerId);
+      }
+
+      function moveNodeDrag(event) {
+        const drag = state.nodeDrag;
+        if (!drag || drag.pointerId !== event.pointerId || drag.element !== event.currentTarget) return;
+        const screenDx = event.clientX - drag.pointerX;
+        const screenDy = event.clientY - drag.pointerY;
+        if (!drag.moved && Math.hypot(screenDx, screenDy) < 4) return;
+        drag.moved = true;
+        drag.element.classList.add("dragging-node");
+        const scale = state.transform.scale || 1;
+        const worldWidth = Number(world.dataset.width) || 2000;
+        const worldHeight = Number(world.dataset.height) || 1200;
+        const nextX = Math.max(18, Math.min(worldWidth - (NODE_WIDTH + 18), drag.x + screenDx / scale));
+        const nextY = Math.max(18, Math.min(worldHeight - (NODE_HEIGHT + 18), drag.y + screenDy / scale));
+        const position = state.positions.get(drag.id);
+        position.x = nextX;
+        position.y = nextY;
+        drag.element.style.left = `${nextX}px`;
+        drag.element.style.top = `${nextY}px`;
+        renderEdges();
+      }
+
+      function endNodeDrag(event) {
+        const drag = state.nodeDrag;
+        if (!drag || drag.pointerId !== event.pointerId || drag.element !== event.currentTarget) return;
+        if (drag.element.hasPointerCapture(event.pointerId)) {
+          drag.element.releasePointerCapture(event.pointerId);
+        }
+        drag.element.classList.remove("dragging-node");
+        if (drag.moved) state.suppressClickId = drag.id;
+        state.nodeDrag = null;
+      }
+
+      function renderEdges() {
+        const defs = edgesLayer.querySelector("defs").outerHTML;
+        const paths = primaryEdges()
+          .filter((edge) => state.visibleLayers.has(edgeLayer(edge)))
+          .flatMap((edge) => {
+          const source = state.positions.get(edge.source);
+          const target = state.positions.get(edge.target);
+          if (!source || !target) return [];
+          let x1 = source.x + NODE_WIDTH;
+          const y1 = source.y + NODE_HEIGHT / 2;
+          let x2 = target.x;
+          const y2 = target.y + NODE_HEIGHT / 2;
+          const peerLink = (edge.type === "related" || edge.type === "shared-prefix") &&
+            Math.abs(source.x - target.x) < 36;
+          let d;
+          let labelX;
+          let labelY;
+          if (peerLink) {
+            x2 = target.x + NODE_WIDTH;
+            const curveX = Math.max(x1, x2) + 62;
+            d = `M ${x1} ${y1} C ${curveX} ${y1}, ${curveX} ${y2}, ${x2} ${y2}`;
+            labelX = curveX + 4;
+            labelY = (y1 + y2) / 2 - 4;
+          } else {
+            const bend = Math.max(44, Math.abs(x2 - x1) * 0.45);
+            d = `M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}`;
+            labelX = (x1 + x2) / 2;
+            labelY = (y1 + y2) / 2 - 7;
+          }
+          const visibleLabel = edge.type === "membership" ? "" : edgeShortLabel(edge);
+          return [`<path class="edge ${escapeHtml(edge.type)}" data-id="${escapeHtml(edge.id)}"
+            data-source="${escapeHtml(edge.source)}" data-target="${escapeHtml(edge.target)}"
+            d="${d}"><title>${escapeHtml(edgeLabel(edge))}</title></path>
+            ${visibleLabel ? `<text class="edge-label" data-source="${escapeHtml(edge.source)}" data-target="${escapeHtml(edge.target)}" x="${labelX}" y="${labelY}" text-anchor="${peerLink ? "start" : "middle"}">${escapeHtml(visibleLabel)}</text>` : ""}`];
+        }).join("");
+        edgesLayer.innerHTML = defs + paths;
+      }
+
+      function edgeShortLabel(edge) {
+        const label = {
+          fork: "明确分支",
+          "shared-prefix": "共享上下文",
+          continuation: "继续讨论",
+          related: "内容相关"
+        }[edge.type] || edge.label || "相关";
+        return edge.type === "related" && edge.confidence
+          ? `${label} ${Math.round(edge.confidence * 100)}%`
+          : label;
+      }
+
+      function edgeLabel(edge) {
+        const type = {
+          membership: "属于项目",
+          fork: "明确分支",
+          "shared-prefix": "共享对话前缀",
+          continuation: "继续讨论",
+          related: "内容相关",
+          contains: "包含原始记录",
+          derived: "由原始记录提炼"
+        }[edge.type] || "相关";
+        return `${edge.label || type} · 置信度 ${Math.round((edge.confidence || 0) * 100)}%`;
+      }
+
+      function renderFilters() {
+        const project = projectNode();
+        const tasks = primaryNodes()
+          .filter((node) => node.kind === "thread")
+          .sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0));
+        const projectRow = project
+          ? `<button class="filter project-row ${state.selectedId === project.id ? "active" : ""}" data-id="${escapeHtml(project.id)}" title="${escapeHtml(project.title)}">
+              <span class="folder-icon"></span>
+              <span class="name">${escapeHtml(project.title)}</span>
+              <span class="count">${tasks.length}</span>
+            </button>`
+          : "";
+        const taskRows = tasks.map((task) => {
+          const matches = taskContents(task.id).filter((content) => content.matchReason).length;
+          return `<button class="filter task-row ${state.selectedId === task.id ? "active" : ""}" data-id="${escapeHtml(task.id)}" title="${escapeHtml(task.title)}">
+            <span class="dot" style="--dot:${matches ? "var(--amber)" : "var(--line-strong)"}"></span>
+            <span class="name">${escapeHtml(task.title)}</span>
+            <span class="count">${matches || ""}</span>
+          </button>`;
+        }).join("");
+        el("clusterFilters").innerHTML = projectRow + taskRows;
+        el("clusterFilters").querySelectorAll(".filter").forEach((button) => {
+          button.addEventListener("click", () => selectNode(button.dataset.id));
+        });
+      }
+
+      function renderStats() {
+        const tasks = state.graph.nodes.filter((node) => node.kind === "thread").length;
+        const records = state.graph.nodes.filter((node) => node.kind === "record").length;
+        const memories = state.graph.nodes.filter((node) => node.kind === "memory").length;
+        const taskRelations = primaryEdges().filter((edge) =>
+          edgeLayer(edge) === "task" && edge.type !== "membership").length;
+        const contentRelations = primaryEdges().filter((edge) =>
+          edgeLayer(edge) === "content").length;
+        const explicitForks = primaryEdges().filter((edge) => edge.type === "fork").length;
+        const retrieval = state.graph.retrieval || {};
+        const query = state.graph.query
+          ? `<br>当前检索：<strong>${escapeHtml(state.graph.query)}</strong>`
+          : "";
+        const scan = retrieval.scannedTasks
+          ? `<br>扫描 ${retrieval.scannedTasks} 个任务 · 精读 ${retrieval.candidateTasks || 0} 个`
+          : "";
+        const index = retrieval.indexMode
+          ? `<br>本地索引：${escapeHtml(retrieval.indexMode === "incremental" ? "增量更新" : "完整构建")}` +
+            ` · 变更 ${retrieval.changedFiles || 0} · 复用 ${retrieval.reusedFiles || 0}`
+          : "";
+        const snapshot = state.graph.snapshot?.fileName
+          ? `<br>本地快照：<strong>${escapeHtml(state.graph.snapshot.fileName)}</strong>`
+          : "";
+        el("stats").innerHTML =
+          `<strong>1</strong> 个项目 · <strong>${tasks}</strong> 个任务<br>` +
+          `<strong>${taskRelations}</strong> 条任务结构 · <strong>${contentRelations}</strong> 条内容关联<br>` +
+          `<strong>${explicitForks}</strong> 条明确分支<br>` +
+          `${records} 条原始记录 · ${memories} 个候选记忆${scan}${index}${query}${snapshot}`;
+      }
+
+      function renderHeaderMetrics() {
+        const tasks = state.graph.nodes.filter((node) => node.kind === "thread").length;
+        const records = state.graph.nodes.filter((node) => node.kind === "record").length;
+        const memories = state.graph.nodes.filter((node) => node.kind === "memory").length;
+        el("headerMetrics").innerHTML = [
+          `<span class="metric"><strong>${tasks}</strong>任务</span>`,
+          `<span class="metric"><strong>${records}</strong>记录</span>`,
+          `<span class="metric"><strong>${memories}</strong>记忆</span>`
+        ].join("");
+      }
+
+      function searchableText(node) {
+        const source = node.source || {};
+        return [
+          node.title, node.summary, node.content, node.cluster, node.matchReason,
+          source.threadTitle, source.prompt, source.excerpt, source.turnId,
+          ...(node.tags || [])
+        ].join(" ").toLocaleLowerCase();
+      }
+
+      function updateSearch() {
+        const query = state.query.trim().toLocaleLowerCase();
+        const matchedTasks = new Set();
+        const matchedRecords = new Set();
+        const matchedMemories = new Set();
+        const project = projectNode();
+
+        for (const node of state.graph.nodes) {
+          if (!query || nodeHasQueryMatch(node, query)) {
+            if (node.kind === "thread") matchedTasks.add(node.id);
+            if (node.kind === "record") matchedRecords.add(node.id);
+            if (node.kind === "memory") matchedMemories.add(node.id);
+            const owner = ownerThreadId(node);
+            if (owner) matchedTasks.add(owner);
+          }
+        }
+
+        const context = new Set(matchedTasks);
+        if (project) context.add(project.id);
+        if (query) {
+          primaryEdges().forEach((edge) => {
+            if (matchedTasks.has(edge.source)) context.add(edge.target);
+            if (matchedTasks.has(edge.target)) context.add(edge.source);
+          });
+        } else {
+          primaryNodes().forEach((node) => context.add(node.id));
+        }
+
+        nodesLayer.querySelectorAll(".node").forEach((nodeElement) => {
+          const id = nodeElement.dataset.id;
+          nodeElement.classList.toggle("dimmed", Boolean(query) && !context.has(id));
+        });
+
+        edgesLayer.querySelectorAll(".edge").forEach((edgeElement) => {
+          const source = edgeElement.dataset.source;
+          const target = edgeElement.dataset.target;
+          const connected = matchedTasks.has(source) || matchedTasks.has(target);
+          edgeElement.classList.toggle("dimmed", Boolean(query) && !connected);
+          edgeElement.classList.toggle("highlighted", Boolean(query) && connected);
+        });
+        edgesLayer.querySelectorAll(".edge-label").forEach((label) => {
+          const connected = matchedTasks.has(label.dataset.source) || matchedTasks.has(label.dataset.target);
+          label.classList.toggle("dimmed", Boolean(query) && !connected);
+        });
+
+        el("resultPill").textContent = query
+          ? `${matchedRecords.size} 条原始记录 · ${matchedMemories.size} 个候选记忆 · ${matchedTasks.size} 个任务`
+          : `1 个项目 · ${primaryNodes().filter((node) => node.kind === "thread").length} 个任务`;
+        renderResults();
+      }
+
+      function selectNode(id) {
+        state.selectedId = id;
+        state.selectedContentId = null;
+        state.contentKind = "record";
+        nodesLayer.querySelectorAll(".node").forEach((nodeElement) => {
+          const selected = nodeElement.dataset.id === id;
+          nodeElement.classList.toggle("selected", selected);
+          nodeElement.setAttribute("aria-pressed", String(selected));
+        });
+        renderFilters();
+        renderDetail();
+        detail.classList.add("open");
+      }
+
+      function formatTime(value) {
+        if (!value) return "未知";
+        let timestamp = Number(value);
+        if (Number.isFinite(timestamp) && timestamp < 1e12) timestamp *= 1000;
+        const date = Number.isFinite(timestamp) ? new Date(timestamp) : new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return new Intl.DateTimeFormat("zh-CN", {
+          year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+        }).format(date);
+      }
+
+      function renderDetail() {
+        const node = state.graph.nodes.find((candidate) => candidate.id === state.selectedId);
+        el("emptyDetail").hidden = Boolean(node);
+        el("detailContent").hidden = !node;
+        if (!node) return;
+
+        const allContents = node.kind === "thread"
+          ? taskContents(node.id)
+          : (node.kind === "project"
+            ? state.graph.nodes.filter((content) =>
+              content.kind === "record" || content.kind === "memory")
+            : []);
+        const recordContents = allContents.filter((content) => content.kind !== "memory");
+        const memoryContents = allContents.filter((content) => content.kind === "memory");
+        const logMode = state.contentKind === "log";
+        const contents = logMode
+          ? []
+          : (state.contentKind === "memory" ? memoryContents : recordContents);
+        const activeContent = logMode
+          ? (node.kind === "thread"
+            ? allContents.find((content) => content.id === state.selectedContentId) ||
+              recordContents.find((content) => content.kind === "record" && nodeHasQueryMatch(content)) ||
+              recordContents[0] ||
+              memoryContents[0] ||
+              null
+            : null)
+          : contents.find((content) => content.id === state.selectedContentId) ||
+            contents.find((content) => content.kind === "record" && nodeHasQueryMatch(content)) ||
+            contents[0] ||
+            null;
+        if (activeContent) state.selectedContentId = activeContent.id;
+
+        const accent = state.positions.get(node.id)?.color?.[0] || "#2f6bff";
+        const source = activeContent?.source || {};
+        const sourceTime = source.timestamp || node.updatedAt;
+        const sourceCwd = source.cwd || node.cwd;
+        const sourceThreadId = source.threadId || (node.kind === "thread" ? node.id : "");
+        const hasRecord = Boolean(activeContent?.content || source.prompt);
+        const matchNode = activeContent || node;
+        detail.style.setProperty("--accent", accent);
+        el("detailKind").textContent = [
+          kindLabels[node.kind] || "任务",
+          matchLabels[matchNode.matchType]
+        ].filter(Boolean).join(" · ");
+        el("detailTitle").textContent = node.title;
+        el("detailSummary").textContent = node.summary || "暂无摘要";
+        el("detailStatus").textContent = node.status || "未知";
+        el("detailTime").textContent = formatTime(sourceTime);
+        el("detailId").textContent = node.id;
+        el("detailCwd").textContent = sourceCwd || "未提供";
+        el("matchReason").hidden = logMode || !matchNode.matchReason;
+        el("matchReason").textContent = matchNode.matchReason
+          ? `匹配理由：${matchNode.matchReason}${matchNode.matchScore ? ` · ${Math.round(matchNode.matchScore * 100)}%` : ""}`
+          : "";
+        const evidence = activeContent?.kind === "record" ? evidenceFor(activeContent) : null;
+        el("evidencePanel").hidden = logMode || !evidence;
+        el("evidenceLocation").textContent = evidence?.location || "";
+        el("evidenceText").innerHTML = evidence
+          ? highlightText(evidence.text, evidence.query)
+          : "";
+        el("feedbackRow").hidden = logMode ||
+          activeContent?.kind !== "record" || !state.graph.query;
+        document.querySelectorAll(".feedback-button").forEach((button) => {
+          const active = button.dataset.feedback === activeContent?.userFeedback;
+          button.classList.toggle("active", active);
+          button.disabled = active;
+        });
+        el("memoryReview").hidden = logMode || activeContent?.kind !== "memory";
+        document.querySelectorAll(".memory-review-button").forEach((button) => {
+          const active = button.dataset.memoryReview === activeContent?.memoryStatus;
+          button.classList.toggle("active", active);
+          button.disabled = active;
+        });
+        el("memoryReviewState").textContent = activeContent?.kind === "memory"
+          ? `当前状态：${memoryStatusLabels[activeContent.memoryStatus] || activeContent.memoryStatus || "候选"}${
+            activeContent.reviewedAt ? ` · ${formatTime(activeContent.reviewedAt)}` : ""
+          }`
+          : "";
+        const tags = [...new Set([...(node.tags || []), ...(activeContent?.tags || [])])];
+        el("detailTags").innerHTML = tags.map((tag) =>
+          `<span class="tag">${escapeHtml(tag)}</span>`).join("");
+        el("detailTags").hidden = logMode;
+        el("graphGuide").hidden = logMode;
+
+        el("recordTabCount").textContent = recordContents.length;
+        el("memoryTabCount").textContent = memoryContents.length;
+        el("detailSwitch").hidden = false;
+        document.querySelectorAll(".detail-switch-button").forEach((button) => {
+          const kind = button.dataset.contentKind;
+          const active = state.contentKind === kind;
+          button.disabled = false;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+        el("contentSection").hidden = logMode || !contents.length;
+        const contentScopeLabel = node.kind === "project" ? "项目" : "任务";
+        el("contentSectionLabel").textContent = state.contentKind === "memory"
+          ? `${contentScopeLabel}中的候选记忆`
+          : `${contentScopeLabel}中的原始记录`;
+        const emptyContentTab = !logMode && contents.length === 0;
+        el("contentEmpty").hidden = !emptyContentTab;
+        el("contentEmpty").textContent = state.contentKind === "memory"
+          ? `当前${contentScopeLabel}还没有候选记忆。候选记忆只会从带有“结论”“最终结论”或“一句话总结”等明确标记的原始回答中提取。`
+          : `当前${contentScopeLabel}没有可展示的原始记录。可以刷新本地索引，或选择包含检索命中的其他任务。`;
+        el("contentTabs").innerHTML = contents.map((content) =>
+          `<button class="content-tab ${content.id === activeContent?.id ? "active" : ""}" data-content-id="${escapeHtml(content.id)}">
+            <span class="tab-kind">${escapeHtml(kindLabels[content.kind] || "内容")}</span>
+            <span class="tab-title">${escapeHtml(content.title)}</span>
+            <span class="tab-state ${escapeHtml(content.matchType || "")}">${escapeHtml(
+              content.kind === "memory"
+                ? (memoryStatusLabels[content.memoryStatus] || "候选")
+                : (matchLabels[content.matchType] || "上下文")
+            )}</span>
+          </button>`).join("");
+        el("contentTabs").querySelectorAll(".content-tab").forEach((button) => {
+          button.addEventListener("click", () => {
+            state.selectedContentId = button.dataset.contentId;
+            renderDetail();
+          });
+        });
+
+        el("recordSection").hidden = logMode || !hasRecord;
+        el("promptBlock").hidden = !source.prompt;
+        el("contentBlock").hidden = !activeContent?.content;
+        el("contentBlockLabel").textContent = activeContent?.kind === "memory"
+          ? "候选记忆（由下方来源记录提取）"
+          : "原始回答";
+        el("sourcePrompt").textContent = source.prompt || "";
+        el("recordContent").innerHTML = renderMarkdown(activeContent?.content || "");
+
+        const meta = [
+          ["sourceTitleRow", "sourceTitle", source.threadTitle],
+          ["sourceThreadRow", "sourceThreadId", sourceThreadId],
+          ["sourceTurnRow", "sourceTurnId", source.turnId],
+          ["sourceRoleRow", "sourceRole", roleLabels[source.role] || source.role],
+          ["duplicateRow", "duplicateCount", source.duplicateCount > 1
+            ? `${source.duplicateCount} 份日志副本已合并为 1 条`
+            : ""],
+          ["copiesRow", "sourceCopies", Array.isArray(source.copies) && source.copies.length
+            ? source.copies.map((copy) =>
+              typeof copy === "string" ? copy : (copy.threadTitle || copy.threadId)).filter(Boolean).join("、")
+            : ""],
+          ["memoryTypeRow", "memoryType", activeContent?.kind === "memory"
+            ? (memoryTypeLabels[activeContent.memoryType] || activeContent.memoryType)
+            : ""],
+          ["memoryStatusRow", "memoryStatus", activeContent?.kind === "memory"
+            ? (memoryStatusLabels[activeContent.memoryStatus] || activeContent.memoryStatus)
+            : ""],
+          ["evidenceTypeRow", "evidenceType", activeContent?.kind === "memory"
+            ? (evidenceTypeLabels[activeContent.evidenceType] || activeContent.evidenceType)
+            : ""],
+          ["memoryConfidenceRow", "memoryConfidence", activeContent?.kind === "memory" &&
+            Number.isFinite(Number(activeContent.confidence))
+            ? `${Math.round(Number(activeContent.confidence) * 100)}%`
+            : ""]
+        ];
+        meta.forEach(([rowId, valueId, value]) => {
+          el(rowId).hidden = !value;
+          el(valueId).textContent = value || "";
+        });
+        el("logSection").hidden = !logMode;
+
+        el("openTask").hidden = !sourceThreadId;
+        el("continueWithRecord").hidden = logMode || !activeContent?.content;
+        el("inspectTask").hidden = !sourceThreadId;
+        el("copyTaskTitle").hidden = !sourceThreadId;
+        el("copyRecord").hidden = logMode || !activeContent?.content;
+        el("copyRecord").textContent = activeContent?.kind === "memory" ? "复制候选记忆" : "复制原始回答";
+      }
+
+      function applyTransform() {
+        const { x, y, scale } = state.transform;
+        world.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+      }
+
+      function zoomAt(factor, centerX = canvas.clientWidth / 2, centerY = canvas.clientHeight / 2) {
+        const previous = state.transform.scale;
+        const next = Math.max(0.35, Math.min(1.6, previous * factor));
+        const worldX = (centerX - state.transform.x) / previous;
+        const worldY = (centerY - state.transform.y) / previous;
+        state.transform.x = centerX - worldX * next;
+        state.transform.y = centerY - worldY * next;
+        state.transform.scale = next;
+        applyTransform();
+      }
+
+      function fitView() {
+        const width = Number(world.dataset.width || 1600);
+        const height = Number(world.dataset.height || 900);
+        const padding = 74;
+        const scale = Math.max(0.35, Math.min(1, Math.min(
+          (canvas.clientWidth - padding * 2) / width,
+          (canvas.clientHeight - padding * 2) / height
+        )));
+        state.transform.scale = scale;
+        state.transform.x = Math.max(24, (canvas.clientWidth - width * scale) / 2);
+        state.transform.y = Math.max(24, (canvas.clientHeight - height * scale) / 2);
+        applyTransform();
+      }
+
+      function readableStartView() {
+        const height = Number(world.dataset.height || 900);
+        const scale = canvas.clientWidth < 700 ? 0.62 : 0.72;
+        state.transform.scale = scale;
+        state.transform.x = 34;
+        state.transform.y = Math.max(28, Math.min(90, (canvas.clientHeight - height * scale) / 2));
+        applyTransform();
+      }
+
+      function showToast(message) {
+        const toast = el("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+      }
+
+      async function sendFollowUp(prompt, title = "MemoryGraph") {
+        const api = window.threadAtlasMcp || window.openai || {};
+        try {
+          if (typeof api.sendFollowUpMessage === "function") {
+            await api.sendFollowUpMessage({ prompt, title });
+            return true;
+          }
+          if (typeof api.sendMessage === "function") {
+            await api.sendMessage({ role: "user", content: [{ type: "text", text: prompt }] });
+            return true;
+          }
+        } catch (error) {
+          showToast(`无法发送：${error.message || error}`);
+          return false;
+        }
+        return false;
+      }
+
+      async function callPluginTool(name, args) {
+        const api = window.threadAtlasMcp || window.openai || {};
+        if (typeof api.callTool !== "function") return null;
+        try {
+          return await api.callTool(name, args);
+        } catch (error) {
+          showToast(`本地持久化暂不可用：${error.message || error}`);
+          return null;
+        }
+      }
+
+      function uiStateKey() {
+        return "memorygraph-ui-state:v1";
+      }
+
+      function loadUiState() {
+        try {
+          const value = JSON.parse(localStorage.getItem(uiStateKey()) || "{}");
+          return {
+            feedback: value.feedback && typeof value.feedback === "object" ? value.feedback : {},
+            memoryReviews: value.memoryReviews && typeof value.memoryReviews === "object"
+              ? value.memoryReviews
+              : {},
+          };
+        } catch {
+          return { feedback: {}, memoryReviews: {} };
+        }
+      }
+
+      function saveUiState(value) {
+        try {
+          localStorage.setItem(uiStateKey(), JSON.stringify(value));
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      function localFeedbackKey(recordId) {
+        return [state.graph.scope, state.graph.query, recordId].join("\u0000");
+      }
+
+      function applyLocalUiState(graph) {
+        const local = loadUiState();
+        graph.nodes = graph.nodes.map((node) => {
+          if (node.kind === "record") {
+            const verdict = local.feedback[
+              [graph.scope, graph.query, node.id].join("\u0000")
+            ];
+            return verdict && !node.userFeedback ? { ...node, userFeedback: verdict } : node;
+          }
+          if (node.kind === "memory") {
+            const review = local.memoryReviews[node.id];
+            return review && !node.reviewedAt
+              ? { ...node, memoryStatus: review.status, reviewedAt: review.updatedAt }
+              : node;
+          }
+          return node;
+        });
+        return graph;
+      }
+
+      function continuationRequest({ task, content, source, threadId, turnId }) {
+        const lines = [
+          `请基于下面这条经过来源验证的 MemoryGraph 记录继续工作。`,
+          `项目：${state.graph.scope || "当前项目"}`,
+          `来源任务：${source.threadTitle || task?.title || "未知"}`,
+          `来源任务 ID：${threadId || "未知"}`,
+        ];
+        if (turnId) lines.push(`来源 Turn ID：${turnId}`);
+        if (source.prompt) lines.push(`当时的用户问题：${source.prompt}`);
+        lines.push(
+          "",
+          "经过验证的原始内容：",
+          String(content?.content || "").slice(0, 5000),
+          "",
+          "请先用一段话说明你如何理解这条记录及其上下文，然后从它继续。不要把候选记忆当作已经确认的事实；需要时重新读取来源任务。"
+        );
+        return lines.join("\n");
+      }
+
+      function recallPrompt(action) {
+        const scope = state.graph.scope || "当前项目";
+        const prompts = {
+          resume: [
+            `请在项目“${scope}”的 MemoryGraph 中恢复最近工作进度。`,
+            "按来源时间找出最近相关任务，返回：已完成、最后确认的决定、当前阻塞、下一步。",
+            "每个结论必须带来源任务 ID 和 Turn ID；不要用无来源摘要补空白。"
+          ],
+          decisions: [
+            `请汇总项目“${scope}”最近确认的决策。`,
+            "优先返回已确认记忆，其次返回原始回答中明确写出的结论。",
+            "区分已确认、候选和已被替代的决定，并附来源任务 ID 与 Turn ID。"
+          ],
+          "open-questions": [
+            `请整理项目“${scope}”仍未解决的问题。`,
+            "从原始记录、候选记忆和最近任务中查找待确认、TODO、风险和互相冲突的结论。",
+            "按影响排序，并给出每项的来源任务 ID 与 Turn ID。"
+          ],
+        };
+        return (prompts[action] || prompts.resume).join("\n");
+      }
+
+      function codexTaskUrl(threadId) {
+        return `codex://threads/${encodeURIComponent(threadId)}`;
+      }
+
+      async function openCodexTask(threadId) {
+        if (!threadId) return false;
+        const api = window.threadAtlasMcp || window.openai || {};
+        const href = codexTaskUrl(threadId);
+        try {
+          if (typeof api.openExternal === "function") {
+            await api.openExternal({ href });
+            return true;
+          }
+          const link = document.createElement("a");
+          link.href = href;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.click();
+          return true;
+        } catch (error) {
+          showToast(`无法打开来源任务：${error.message || error}`);
+          return false;
+        }
+      }
+
+      async function copyText(value, successMessage = "已复制") {
+        try {
+          await navigator.clipboard.writeText(value);
+          showToast(successMessage);
+        } catch {
+          showToast("当前预览无法访问剪贴板");
+        }
+      }
+
+      function selectedTaskAndContent() {
+        const content = state.graph.nodes.find((node) =>
+          node.id === state.selectedContentId &&
+          node.kind !== "project" &&
+          node.kind !== "thread") || null;
+        const directTask = state.graph.nodes.find((node) =>
+          node.id === state.selectedId && node.kind === "thread");
+        const task = directTask || state.graph.nodes.find((node) =>
+          node.kind === "thread" && node.id === ownerThreadId(content)) || null;
+        return { task, content };
+      }
+
+      function selectedSourceAnchor() {
+        const { task, content } = selectedTaskAndContent();
+        const source = content?.source || {};
+        return {
+          task,
+          content,
+          source,
+          threadId: source.threadId || task?.id || "",
+          turnId: source.turnId || ""
+        };
+      }
+
+      function contextRequest({ task, content, source, threadId, turnId }) {
+        const lines = [
+          "请查看下面这条 Codex 来源记录的原始上下文。",
+          `来源任务 ID：${threadId}`,
+          `来源任务名称：${source.threadTitle || task?.title || "未知"}`
+        ];
+        if (turnId) lines.push(`目标 Turn ID：${turnId}`);
+        if (source.timestamp) lines.push(`记录时间：${formatTime(source.timestamp)}`);
+        if (source.prompt) lines.push(`目标回答前的用户消息：${source.prompt}`);
+        if (source.excerpt) lines.push(`目标回答开头：${source.excerpt}`);
+        else if (content?.content) lines.push(`目标回答开头：${content.content.slice(0, 160)}`);
+        lines.push(
+          "",
+          "请调用 read_thread 读取这个任务，以目标 Turn 为中心返回前后各 2 轮用户与 AI 原文。",
+          "保留消息顺序、角色和时间；不要只依据当前图谱摘要，也不要重新概括原文。",
+          "如果无法按 Turn ID 精确定位，请用时间、上一条用户消息和回答开头共同定位，并明确说明是近似定位。"
+        );
+        return lines.join("\n");
+      }
+
+      function ingestGraph(graph) {
+        if (!graph || !Array.isArray(graph.nodes) || !Array.isArray(graph.edges)) return;
+        state.graph = applyLocalUiState(graph);
+        const preferredRecord = graph.mode === "search"
+          ? [...graph.nodes]
+            .filter((node) => node.kind === "record" && node.matchReason)
+            .sort((a, b) => {
+              const feedback = Number(b.userFeedback === "correct") - Number(a.userFeedback === "correct") ||
+                Number(a.userFeedback === "incorrect") - Number(b.userFeedback === "incorrect");
+              const exact = Number(b.matchType === "exact") - Number(a.matchType === "exact");
+              return feedback || exact || Number(b.matchScore || 0) - Number(a.matchScore || 0);
+            })[0]
+          : null;
+        state.selectedId = preferredRecord
+          ? ownerThreadId(preferredRecord)
+          : (graph.rootProjectId || graph.nodes.find((node) => node.kind === "project")?.id || null);
+        state.selectedContentId = preferredRecord?.id || null;
+        state.contentKind = "record";
+        state.canvasMode = graph.mode === "search" && graph.nodes.some((node) => node.kind === "record")
+          ? "results"
+          : "graph";
+        state.query = graph.query || "";
+        el("searchInput").value = state.query;
+        el("graphTitle").textContent = graph.title || "MemoryGraph";
+        el("graphScope").textContent = graph.scope || "当前项目";
+        renderGraph();
+        detail.classList.toggle("open", Boolean(state.selectedId));
+        requestAnimationFrame(readableStartView);
+      }
+
+      function graphFromResult(result) {
+        return result?._meta?.widgetData ||
+          result?.structuredContent?.graph ||
+          result?.widgetData ||
+          null;
+      }
+
+      window.addEventListener("openai:set_globals", (event) => {
+        const graph = event.detail?.globals?.toolOutput;
+        if (graph?.nodes) ingestGraph(graph);
+      });
+
+      window.addEventListener("message", (event) => {
+        if (event.data?.method !== "ui/notifications/tool-result") return;
+        const graph = graphFromResult(event.data?.params?.result);
+        if (graph) ingestGraph(graph);
+      });
+
+      el("searchInput").addEventListener("input", (event) => {
+        state.query = event.target.value;
+        updateSearch();
+      });
+      document.querySelectorAll(".view-button").forEach((button) => {
+        button.addEventListener("click", () => setCanvasMode(button.dataset.canvasMode));
+      });
+      document.querySelectorAll(".recall-action").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const action = button.dataset.recallAction;
+          const sent = await sendFollowUp(recallPrompt(action), "继续项目上下文");
+          showToast(sent ? "已请求 Codex 恢复项目上下文" : "无法直接发送续接请求");
+        });
+      });
+      document.querySelectorAll(".feedback-button").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const { task, content } = selectedTaskAndContent();
+          if (!task || content?.kind !== "record") return;
+          const verdict = button.dataset.feedback;
+          const local = loadUiState();
+          local.feedback[localFeedbackKey(content.id)] = verdict;
+          saveUiState(local);
+          content.userFeedback = verdict;
+          await callPluginTool("record_retrieval_feedback", {
+            cwd: content.source?.cwd || state.graph.scope,
+            query: state.graph.query || state.query,
+            recordId: content.id,
+            threadId: content.source?.threadId || task.id,
+            turnId: content.source?.turnId || "",
+            verdict,
+          });
+          renderDetail();
+          renderResults();
+          showToast(verdict === "correct" ? "已确认正确记录" : "已标记为错误结果");
+        });
+      });
+      document.querySelectorAll(".memory-review-button").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const { task, content } = selectedTaskAndContent();
+          if (!task || content?.kind !== "memory") return;
+          const status = button.dataset.memoryReview;
+          const reviewedAt = new Date().toISOString();
+          const local = loadUiState();
+          local.memoryReviews[content.id] = { status, updatedAt: reviewedAt };
+          saveUiState(local);
+          content.memoryStatus = status;
+          content.reviewedAt = reviewedAt;
+          await callPluginTool("review_memory_candidate", {
+            cwd: content.source?.cwd || state.graph.scope,
+            memoryId: content.id,
+            status,
+            threadId: content.source?.threadId || task.id,
+            turnId: content.source?.turnId || "",
+          });
+          renderDetail();
+          showToast(status === "confirmed"
+            ? "候选记忆已确认"
+            : status === "rejected"
+              ? "候选记忆已否决"
+              : "已恢复为候选记忆");
+        });
+      });
+      document.querySelectorAll(".detail-switch-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (button.disabled) return;
+          const nextKind = button.dataset.contentKind;
+          if (nextKind !== "log") {
+            const selected = state.graph.nodes.find((node) => node.id === state.selectedContentId);
+            const selectedMatches = nextKind === "memory"
+              ? selected?.kind === "memory"
+              : selected && selected.kind !== "memory";
+            if (!selectedMatches) state.selectedContentId = null;
+          }
+          state.contentKind = nextKind;
+          renderDetail();
+        });
+      });
+      document.querySelectorAll(".layer-control").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const layer = button.dataset.layer;
+          if (state.visibleLayers.has(layer) && state.visibleLayers.size === 1) {
+            showToast("至少保留一个关系层");
+            return;
+          }
+          if (state.visibleLayers.has(layer)) state.visibleLayers.delete(layer);
+          else state.visibleLayers.add(layer);
+          const active = state.visibleLayers.has(layer);
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+          renderEdges();
+          updateSearch();
+        });
+      });
+      el("zoomIn").addEventListener("click", () => zoomAt(1.18));
+      el("zoomOut").addEventListener("click", () => zoomAt(0.84));
+      el("fitView").addEventListener("click", fitView);
+      el("fullscreenButton").addEventListener("click", async () => {
+        const api = window.threadAtlasMcp || window.openai || {};
+        if (typeof api.requestDisplayMode === "function") {
+          try { await api.requestDisplayMode({ mode: "fullscreen" }); return; } catch {}
+        }
+        if (document.fullscreenEnabled) document.documentElement.requestFullscreen().catch(() => {});
+      });
+      el("refreshButton").addEventListener("click", async () => {
+        const sent = await sendFollowUp(
+          `刷新 MemoryGraph：增量读取“${state.graph.scope || "当前项目"}”的本地任务记录并更新索引与图谱。`,
+          "刷新 MemoryGraph"
+        );
+        showToast(sent ? "已请求 Codex 增量刷新" : "请在对话中输入“刷新记忆图谱”");
+      });
+      el("openTask").addEventListener("click", async () => {
+        const anchor = selectedSourceAnchor();
+        if (!anchor.task || !anchor.threadId) return;
+        const opened = await openCodexTask(anchor.threadId);
+        if (opened) showToast("正在打开来源任务");
+        else await copyText(anchor.threadId, "无法直接打开，已复制来源任务 ID");
+      });
+      el("continueWithRecord").addEventListener("click", async () => {
+        const anchor = selectedSourceAnchor();
+        if (!anchor.task || !anchor.content?.content) return;
+        const prompt = continuationRequest(anchor);
+        const sent = await sendFollowUp(prompt, "带着已验证记录继续");
+        if (sent) showToast("已把来源记录交给 Codex 继续");
+        else await copyText(prompt, "无法直接发送，已复制续接上下文");
+      });
+      el("inspectTask").addEventListener("click", async () => {
+        const anchor = selectedSourceAnchor();
+        if (!anchor.task || !anchor.threadId) return;
+        const prompt = contextRequest(anchor);
+        const sent = await sendFollowUp(prompt, "查看记录上下文");
+        if (sent) showToast("已请求 Codex 读取原始上下文");
+        else await copyText(prompt, "无法直接发送，已复制上下文读取指令");
+      });
+      el("copyRecord").addEventListener("click", () => {
+        const { content } = selectedTaskAndContent();
+        if (content?.content) {
+          copyText(content.content, content.kind === "memory" ? "已复制候选记忆" : "已复制原始回答");
+        }
+      });
+      el("copyTaskTitle").addEventListener("click", () => {
+        const { task } = selectedTaskAndContent();
+        if (task) copyText(task.title, "已复制任务名称，可粘贴到 Codex 搜索");
+      });
+      detailResizer.addEventListener("pointerdown", (event) => {
+        if (window.innerWidth <= 650) return;
+        state.detailResize = {
+          pointerId: event.pointerId,
+          pointerX: event.clientX,
+          width: state.detailWidth
+        };
+        detailResizer.classList.add("dragging");
+        app.classList.add("resizing-detail");
+        detailResizer.setPointerCapture(event.pointerId);
+        event.preventDefault();
+      });
+      detailResizer.addEventListener("pointermove", (event) => {
+        const resize = state.detailResize;
+        if (!resize || resize.pointerId !== event.pointerId) return;
+        applyDetailWidth(resize.width - (event.clientX - resize.pointerX));
+      });
+      detailResizer.addEventListener("pointerup", (event) => {
+        const resize = state.detailResize;
+        if (!resize || resize.pointerId !== event.pointerId) return;
+        if (detailResizer.hasPointerCapture(event.pointerId)) {
+          detailResizer.releasePointerCapture(event.pointerId);
+        }
+        state.detailResize = null;
+        detailResizer.classList.remove("dragging");
+        app.classList.remove("resizing-detail");
+        storeDetailWidth(state.detailWidth);
+      });
+      detailResizer.addEventListener("pointercancel", () => {
+        state.detailResize = null;
+        detailResizer.classList.remove("dragging");
+        app.classList.remove("resizing-detail");
+      });
+      detailResizer.addEventListener("dblclick", () => {
+        applyDetailWidth(DETAIL_WIDTH_DEFAULT, { persist: true });
+        showToast("详情栏宽度已恢复默认");
+      });
+      detailResizer.addEventListener("keydown", (event) => {
+        const bounds = detailWidthBounds();
+        let next = state.detailWidth;
+        if (event.key === "ArrowLeft") next += 24;
+        else if (event.key === "ArrowRight") next -= 24;
+        else if (event.key === "Home") next = bounds.min;
+        else if (event.key === "End") next = bounds.max;
+        else return;
+        event.preventDefault();
+        applyDetailWidth(next, { persist: true });
+      });
+
+      canvas.addEventListener("pointerdown", (event) => {
+        if (state.canvasMode === "results") return;
+        if (event.target.closest(".node") ||
+            event.target.closest(".canvas-toolbar") ||
+            event.target.closest(".layer-controls") ||
+            event.target.closest(".view-switcher")) return;
+        state.dragging = true;
+        state.dragStart = {
+          pointerX: event.clientX,
+          pointerY: event.clientY,
+          x: state.transform.x,
+          y: state.transform.y
+        };
+        canvas.classList.add("dragging");
+        canvas.setPointerCapture(event.pointerId);
+        if (window.innerWidth <= 650) detail.classList.remove("open");
+      });
+      canvas.addEventListener("pointermove", (event) => {
+        if (!state.dragging) return;
+        state.transform.x = state.dragStart.x + event.clientX - state.dragStart.pointerX;
+        state.transform.y = state.dragStart.y + event.clientY - state.dragStart.pointerY;
+        applyTransform();
+      });
+      canvas.addEventListener("pointerup", () => {
+        state.dragging = false;
+        canvas.classList.remove("dragging");
+      });
+      canvas.addEventListener("wheel", (event) => {
+        if (state.canvasMode === "results") return;
+        event.preventDefault();
+        const bounds = canvas.getBoundingClientRect();
+        zoomAt(event.deltaY > 0 ? 0.92 : 1.08, event.clientX - bounds.left, event.clientY - bounds.top);
+      }, { passive: false });
+
+      window.addEventListener("resize", () => {
+        applyDetailWidth(state.detailWidth);
+        requestAnimationFrame(applyTransform);
+      });
+
+      const initialGraph = window.openai?.toolOutput?.nodes
+        ? window.openai.toolOutput
+        : demoGraph;
+      restoreDetailWidth();
+      ingestGraph(initialGraph);
+    })();
+  </script>
+</body>
+</html>

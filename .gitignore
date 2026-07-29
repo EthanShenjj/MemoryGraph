@@ -1,0 +1,12 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Real-project retrieval artifacts can contain full source conversations,
+# local paths, task IDs, Turn IDs, and internal project details.
+test-runs/
+*-result.json
+
+# Keep private ad-hoc exports separate from distributable fixtures.
+examples/private/

@@ -1,0 +1,56 @@
+# MemoryGraph design QA
+
+## Status
+
+**Blocked — implementation capture unavailable**
+
+The visual reference is a private local design asset and is not distributed with the plugin.
+
+The implementation under review is:
+
+- `assets/widget.html`
+
+## Implemented target characteristics
+
+- Light, editorial three-column workspace with a restrained blue-gray palette.
+- 56 px application header, 264 px project rail, flexible graph canvas, and a 410 px default inspector that can be resized from 320–720 px when viewport space permits.
+- Flat project navigation and low-noise canvas controls.
+- Larger 256 × 136 px task cards with cleaner status and match hierarchy.
+- Blue selected state, amber retrieval state, and neutral context state.
+- Dedicated “原始记录 / 候选记忆” inspector switch with counts.
+- Search-first ranked record view with a one-click switch back to the DAG.
+- Visible match evidence, literal highlighting, and local correctness feedback.
+- Candidate-memory confirmation/rejection controls and project-continuation actions.
+- Reading-first inspector typography: 14 px source content, 12.5 px metadata, and a 22 px detail title.
+- Mouse, pointer, and keyboard resizing for the desktop inspector; width persists locally and double-click restores the default.
+- Real transparent MemoryGraph mark served as a local MCP image resource.
+- Existing search, graph layers, Markdown rendering, node drag, source-task opening, and context inspection preserved.
+
+## Automated checks completed
+
+- Inline widget JavaScript parses successfully.
+- MCP protocol/resource probe passes, including the PNG mark resource.
+- Local incremental memory-index probe passes.
+
+## Blocking condition
+
+The matching user-opened local preview tab was claimed, but the Codex in-app browser rejected reloading its `file://` URL under the browser safety policy. No alternate browser path or policy workaround was attempted.
+
+## Visual checks still required
+
+At the same viewport as the selected target:
+
+- Compare overall column proportions and header height.
+- Check task-card density, title wrapping, and edge-label collisions.
+- Verify the generated mark crop at 28 × 28 px.
+- Verify the selected-card outline and amber match state.
+- Switch between “原始记录” and “候选记忆” and inspect count/empty states.
+- Switch between “结果” and “图谱”; test result selection, highlighted evidence, and zero-result state.
+- Exercise result feedback, candidate-memory review, and all four project-continuation actions.
+- Drag at least one node and confirm all connected edges remain anchored.
+- Drag the inspector divider to its minimum and maximum widths, verify text reflow, test arrow-key resizing, and double-click reset.
+- Inspect narrow-width behavior at the 900 px and 650 px breakpoints.
+
+## Final result
+
+Blocked until the updated local example is opened in the Codex in-app browser and a screenshot-based comparison can be completed.
