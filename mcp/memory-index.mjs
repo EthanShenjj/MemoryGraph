@@ -198,7 +198,7 @@ function buildCanonicalRecords(fileEntries, titles) {
     const turnIds = threadTurns.get(session.threadId) || new Set();
     const thread = threads.get(session.threadId) || {
       id: session.threadId,
-      title: titles.get(session.threadId) || "未命名任务",
+      title: titles.get(session.threadId) || "Untitled task",
       cwd: session.cwd,
       createdAt: session.createdAt,
       updatedAt: session.createdAt,
@@ -213,7 +213,7 @@ function buildCanonicalRecords(fileEntries, titles) {
       const occurrence = {
         turnId: turn.turnId,
         threadId: session.threadId,
-        threadTitle: titles.get(session.threadId) || "未命名任务",
+        threadTitle: titles.get(session.threadId) || "Untitled task",
         cwd: session.cwd,
         sessionCreatedAt: session.createdAt,
         prompt: cleanUserPrompt(user.text),
@@ -280,7 +280,7 @@ function buildCanonicalRecords(fileEntries, titles) {
 function memoryStatement(answer) {
   const lines = String(answer || "").replace(/\r\n?/g, "\n").split("\n");
   for (let index = 0; index < lines.length; index += 1) {
-    if (!/^(?:#{1,6}\s*)?(?:最终结论|核心结论|产品结论|结论|一句话总结)\s*[：:]?\s*$/i
+    if (!/^(?:#{1,6}\s*)?(?:final conclusion|core conclusion|product conclusion|conclusion|one-line summary|\u6700\u7ec8\u7ed3\u8bba|\u6838\u5fc3\u7ed3\u8bba|\u4ea7\u54c1\u7ed3\u8bba|\u7ed3\u8bba|\u4e00\u53e5\u8bdd\u603b\u7ed3)\s*[\uFF1A:]?\s*$/i
       .test(lines[index].trim())) continue;
     for (let cursor = index + 1; cursor < Math.min(lines.length, index + 8); cursor += 1) {
       const candidate = lines[cursor].replace(/^\s*>\s?/, "").trim();
@@ -467,15 +467,15 @@ function scoreRecord(record, query) {
   let score = 0;
   if (phrase && prompt.includes(phrase)) {
     score += 100;
-    reasons.push("用户原始问题包含完整查询");
+    reasons.push("The original user prompt contains the full query");
   }
   if (phrase && answer.includes(phrase)) {
     score += 70;
-    reasons.push("AI 原始回答包含完整查询");
+    reasons.push("The original assistant answer contains the full query");
   }
   if (phrase && title.includes(phrase)) {
     score += 45;
-    reasons.push("任务标题包含完整查询");
+    reasons.push("The task title contains the full query");
   }
   let promptHits = 0;
   let answerHits = 0;
@@ -494,9 +494,9 @@ function scoreRecord(record, query) {
       titleHits += 1;
     }
   }
-  if (promptHits) reasons.push(`用户问题命中 ${promptHits}/${tokens.length || 1} 个检索词`);
-  if (answerHits) reasons.push(`AI 回答命中 ${answerHits}/${tokens.length || 1} 个检索词`);
-  if (titleHits) reasons.push(`任务标题命中 ${titleHits}/${tokens.length || 1} 个检索词`);
+  if (promptHits) reasons.push(`User prompt matched ${promptHits}/${tokens.length || 1} query terms`);
+  if (answerHits) reasons.push(`Assistant answer matched ${answerHits}/${tokens.length || 1} query terms`);
+  if (titleHits) reasons.push(`Task title matched ${titleHits}/${tokens.length || 1} query terms`);
   return {
     score,
     matchType: phrase && (prompt.includes(phrase) || answer.includes(phrase) || title.includes(phrase))
@@ -528,9 +528,9 @@ function sharedPrefixEdges(index, taskIds) {
         layer: "task",
         direction: "symmetric",
         evidenceType: "turn-id-overlap",
-        evidence: `${shared.length} 个相同 Turn ID`,
+        evidence: `${shared.length} shared Turn IDs`,
         confidence: Math.min(0.99, 0.7 + shared.length * 0.02),
-        label: `共享 ${shared.length} 个 Turn`,
+        label: `${shared.length} shared Turns`,
       });
     }
   }
@@ -567,7 +567,7 @@ export function searchMemoryIndex(index, {
           ...item.ranking,
           score: item.ranking.score + densityBonus,
           reasons: densityBonus
-            ? [...item.ranking.reasons, `同一来源任务另有 ${taskHits - 1} 条相关记录`]
+            ? [...item.ranking.reasons, `${taskHits - 1} additional relevant records in the same source task`]
             : item.ranking.reasons,
         },
       };
@@ -583,35 +583,35 @@ export function searchMemoryIndex(index, {
   const nodes = [{
     id: rootId,
     title: path.basename(index.cwd) || index.cwd,
-    summary: `${index.threads.length} 个本地任务 · ${index.records.length} 条去重记录`,
+    summary: `${index.threads.length} local tasks · ${index.records.length} deduplicated records`,
     kind: "project",
     status: "indexed",
     cwd: index.cwd,
-    cluster: "项目",
-    tags: ["本地索引", "完整项目"],
+    cluster: "Project",
+    tags: ["Local index", "Complete project"],
   }];
 
   for (const threadId of taskIds) {
     const thread = threadById.get(threadId) || {
       id: threadId,
-      title: "未命名任务",
+      title: "Untitled task",
       cwd: index.cwd,
     };
     const taskMatches = ranked.filter((item) => item.record.originThreadId === threadId);
     nodes.push({
       id: thread.id,
       title: thread.title,
-      summary: `${taskMatches.length} 条相关原始记录`,
+      summary: `${taskMatches.length} relevant source records`,
       kind: "thread",
       status: "indexed",
       cwd: thread.cwd,
       updatedAt: thread.updatedAt,
       hostId: "local",
-      cluster: "检索命中",
+      cluster: "Search match",
       matchType: taskMatches[0]?.ranking.matchType === "exact" ? "exact" : "context",
       matchScore: Math.min(1, (taskMatches[0]?.ranking.score || 0) / 160),
-      matchReason: taskMatches[0]?.ranking.reasons.join("；") || "",
-      tags: ["原始任务", `${taskMatches.length} 条记录`],
+      matchReason: taskMatches[0]?.ranking.reasons.join("; ") || "",
+      tags: ["Source task", `${taskMatches.length} records`],
     });
   }
 
@@ -623,9 +623,9 @@ export function searchMemoryIndex(index, {
     layer: "task",
     direction: "directed",
     evidenceType: "exact-cwd",
-    evidence: `任务 cwd 与项目范围完全一致：${index.cwd}`,
+    evidence: `The task working directory exactly matches the project scope: ${index.cwd}`,
     confidence: 1,
-    label: "属于项目",
+    label: "Belongs to project",
   }));
   edges.push(...sharedPrefixEdges(index, taskIds));
 
@@ -640,18 +640,18 @@ export function searchMemoryIndex(index, {
     const score = Math.min(1, ranking.score / 160);
     nodes.push({
       id: record.id,
-      title: `原始回答：${clamp(record.prompt, 72)}`,
+      title: `Original answer: ${clamp(record.prompt, 72)}`,
       summary: clamp(record.answer.replace(/\s+/g, " "), 180),
       content: record.answer,
       kind: "record",
       status: "found",
       cwd: record.cwd,
       updatedAt: record.answerTimestamp,
-      cluster: "原始记录",
+      cluster: "Source record",
       matchType: ranking.matchType === "exact" ? "exact" : "context",
       matchScore: score,
-      matchReason: ranking.reasons.join("；"),
-      tags: ["原始回答", `Top ${rank + 1}`],
+      matchReason: ranking.reasons.join("; "),
+      tags: ["Original answer", `Top ${rank + 1}`],
       source: {
         threadId: record.originThreadId,
         turnId: record.turnId,
@@ -685,11 +685,11 @@ export function searchMemoryIndex(index, {
         status: memory.memoryStatus,
         cwd: record.cwd,
         updatedAt: record.answerTimestamp,
-        cluster: "候选记忆",
+        cluster: "Memory candidate",
         matchType: "context",
         matchScore: memory.confidence,
-        matchReason: "从原始回答中的明确结论标记提取，尚未由用户确认",
-        tags: ["候选记忆", "待确认"],
+        matchReason: "Extracted from an explicit conclusion marker in the original answer; not yet confirmed by the user",
+        tags: ["Memory candidate", "Needs review"],
       });
       edges.push({
         id: `derived:${record.id}:${memory.id}`,
@@ -701,7 +701,7 @@ export function searchMemoryIndex(index, {
         evidenceType: "explicit-statement",
         evidence: memory.content,
         confidence: memory.confidence,
-        label: "提取候选记忆",
+        label: "Extract memory candidate",
       });
     }
   });

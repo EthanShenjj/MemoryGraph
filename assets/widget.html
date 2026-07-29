@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -1613,39 +1613,39 @@
         <div class="brand-mark"><img src="./memorygraph-mark.png" alt="" /></div>
         <div class="brand-copy">
           <h1 id="graphTitle">MemoryGraph</h1>
-          <p id="graphScope">当前项目</p>
+          <p id="graphScope">Current project</p>
         </div>
       </div>
       <label class="search">
         <span aria-hidden="true">⌕</span>
         <input id="searchInput" type="search" autocomplete="off"
-          placeholder="搜索方案、决策、文件或关键词" aria-label="搜索会话" />
+          placeholder="Search plans, decisions, files, or keywords" aria-label="Search conversations" />
       </label>
       <div class="header-actions">
         <div class="header-metrics" id="headerMetrics"></div>
-        <button class="icon-button" id="refreshButton" title="让 Codex 刷新图谱" aria-label="刷新">↻</button>
-        <button class="icon-button" id="fullscreenButton" title="全屏" aria-label="全屏">⛶</button>
+        <button class="icon-button" id="refreshButton" title="Ask Codex to refresh the graph" aria-label="Refresh">↻</button>
+        <button class="icon-button" id="fullscreenButton" title="Fullscreen" aria-label="Fullscreen">⛶</button>
       </div>
     </header>
 
     <aside class="rail">
-      <div class="section-label">项目结构</div>
+      <div class="section-label">Project structure</div>
       <div class="filter-list" id="clusterFilters"></div>
 
       <div class="rail-group">
-        <div class="section-label">任务结构</div>
+        <div class="section-label">Task structure</div>
         <div class="legend">
-          <div class="legend-row"><span class="edge-sample"></span><span>属于项目</span></div>
-          <div class="legend-row"><span class="edge-sample" style="border-color:#7950c8"></span><span>明确分支</span></div>
-          <div class="legend-row"><span class="edge-sample inferred" style="border-color:var(--blue)"></span><span>继续讨论</span></div>
-          <div class="legend-row"><span class="edge-sample inferred" style="border-color:var(--green)"></span><span>共享对话前缀</span></div>
+          <div class="legend-row"><span class="edge-sample"></span><span>Belongs to project</span></div>
+          <div class="legend-row"><span class="edge-sample" style="border-color:#7950c8"></span><span>Explicit fork</span></div>
+          <div class="legend-row"><span class="edge-sample inferred" style="border-color:var(--blue)"></span><span>Continuation</span></div>
+          <div class="legend-row"><span class="edge-sample inferred" style="border-color:var(--green)"></span><span>Shared conversation prefix</span></div>
         </div>
       </div>
 
       <div class="rail-group">
-        <div class="section-label">内容关联</div>
+        <div class="section-label">Content relationships</div>
         <div class="legend">
-          <div class="legend-row"><span class="edge-sample related"></span><span>相似内容，不代表先后关系</span></div>
+          <div class="legend-row"><span class="edge-sample related"></span><span>Similar content; no sequence implied</span></div>
         </div>
       </div>
 
@@ -1653,30 +1653,30 @@
     </aside>
 
     <main class="canvas-shell" id="canvas">
-      <div class="view-switcher" id="viewSwitcher" aria-label="主视图">
-        <button class="view-button active" data-canvas-mode="results" aria-pressed="true">结果</button>
-        <button class="view-button" data-canvas-mode="graph" aria-pressed="false">图谱</button>
+      <div class="view-switcher" id="viewSwitcher" aria-label="Main view">
+        <button class="view-button active" data-canvas-mode="results" aria-pressed="true">Results</button>
+        <button class="view-button" data-canvas-mode="graph" aria-pressed="false">Graph</button>
       </div>
       <section class="result-view" id="resultView">
         <div class="result-view-inner">
           <div class="result-view-head">
             <div>
-              <h2 id="resultViewTitle">找到的原始记录</h2>
-              <p id="resultViewSummary">先确认原始记录，再通过图谱理解任务关系。</p>
+              <h2 id="resultViewTitle">Source records found</h2>
+              <p id="resultViewSummary">Verify source records first, then use the graph to understand task relationships.</p>
             </div>
           </div>
-          <div class="recall-actions" aria-label="项目续接">
+          <div class="recall-actions" aria-label="Project continuation">
             <button class="recall-action" data-recall-action="resume">
-              恢复上次进度
-              <span>找出最近任务、结论和下一步</span>
+              Resume recent work
+              <span>Find recent tasks, conclusions, and next steps</span>
             </button>
             <button class="recall-action" data-recall-action="decisions">
-              汇总最近决策
-              <span>只返回有来源的项目决定</span>
+              Summarize recent decisions
+              <span>Return only source-backed project decisions</span>
             </button>
             <button class="recall-action" data-recall-action="open-questions">
-              整理未解决问题
-              <span>定位仍待确认的事项</span>
+              Collect unresolved questions
+              <span>Find items that still need confirmation</span>
             </button>
           </div>
           <div class="result-list" id="resultList"></div>
@@ -1693,35 +1693,35 @@
         </svg>
         <div id="nodes"></div>
       </div>
-      <div class="layer-controls" aria-label="图谱显示层">
-        <button class="layer-control active" data-layer="task" aria-pressed="true">任务结构</button>
-        <button class="layer-control active" data-layer="content" aria-pressed="true">内容关联</button>
+      <div class="layer-controls" aria-label="Graph layers">
+        <button class="layer-control active" data-layer="task" aria-pressed="true">Task structure</button>
+        <button class="layer-control active" data-layer="content" aria-pressed="true">Content relationships</button>
       </div>
       <div class="result-pill" id="resultPill"></div>
       <div class="canvas-toolbar">
-        <button class="icon-button" id="zoomOut" title="缩小" aria-label="缩小">−</button>
-        <button class="icon-button" id="fitView" title="适应画布" aria-label="适应画布">⌾</button>
-        <button class="icon-button" id="zoomIn" title="放大" aria-label="放大">＋</button>
+        <button class="icon-button" id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button>
+        <button class="icon-button" id="fitView" title="Fit to canvas" aria-label="Fit to canvas">⌾</button>
+        <button class="icon-button" id="zoomIn" title="Zoom in" aria-label="Zoom in">＋</button>
       </div>
     </main>
 
     <button class="detail-resizer" id="detailResizer" type="button"
-      role="separator" aria-orientation="vertical" aria-label="调整右侧详情栏宽度"
+      role="separator" aria-orientation="vertical" aria-label="Resize the right inspector"
       aria-valuemin="320" aria-valuemax="720" aria-valuenow="410"
-      title="拖拽调整详情栏宽度，双击恢复默认"></button>
+      title="Drag to resize the inspector; double-click to reset"></button>
 
     <aside class="detail" id="detail">
-      <div class="empty-detail" id="emptyDetail"><div>选择一个任务，再查看原始记录、候选记忆、证据与上下文。</div></div>
+      <div class="empty-detail" id="emptyDetail"><div>Select a task to view its source records, memory candidates, evidence, and context.</div></div>
       <div class="detail-content" id="detailContent" hidden>
         <div class="detail-switch" id="detailSwitch">
           <button class="detail-switch-button active" data-content-kind="record" aria-pressed="true">
-            原始记录 <span class="detail-switch-count" id="recordTabCount">0</span>
+            Source records <span class="detail-switch-count" id="recordTabCount">0</span>
           </button>
           <button class="detail-switch-button" data-content-kind="memory" aria-pressed="false">
-            候选记忆 <span class="detail-switch-count" id="memoryTabCount">0</span>
+            Memory candidates <span class="detail-switch-count" id="memoryTabCount">0</span>
           </button>
           <button class="detail-switch-button" data-content-kind="log" aria-pressed="false">
-            日志
+            Logs
           </button>
         </div>
         <div class="detail-kind" id="detailKind"></div>
@@ -1730,104 +1730,104 @@
         <div class="match-reason" id="matchReason" hidden></div>
         <section class="evidence-panel" id="evidencePanel" hidden>
           <div class="evidence-head">
-            <span>命中证据</span>
+            <span>Match evidence</span>
             <span class="evidence-location" id="evidenceLocation"></span>
           </div>
           <div class="evidence-text" id="evidenceText"></div>
         </section>
         <section class="feedback-row" id="feedbackRow" hidden>
-          <div class="feedback-title">这条记录找对了吗？反馈只保存在本地。</div>
+          <div class="feedback-title">Is this the correct record? Feedback stays local.</div>
           <div class="feedback-actions">
-            <button class="feedback-button correct" data-feedback="correct">找对了</button>
-            <button class="feedback-button incorrect" data-feedback="incorrect">不是这条</button>
+            <button class="feedback-button correct" data-feedback="correct">Correct</button>
+            <button class="feedback-button incorrect" data-feedback="incorrect">Incorrect</button>
           </div>
         </section>
         <section class="memory-review" id="memoryReview" hidden>
-          <div class="memory-review-title">审核候选记忆</div>
+          <div class="memory-review-title">Review memory candidate</div>
           <div class="memory-review-actions">
-            <button class="memory-review-button confirmed" data-memory-review="confirmed">确认记忆</button>
-            <button class="memory-review-button rejected" data-memory-review="rejected">否决</button>
-            <button class="memory-review-button candidate" data-memory-review="candidate">恢复候选</button>
+            <button class="memory-review-button confirmed" data-memory-review="confirmed">Confirm memory</button>
+            <button class="memory-review-button rejected" data-memory-review="rejected">Reject</button>
+            <button class="memory-review-button candidate" data-memory-review="candidate">Reset to candidate</button>
           </div>
           <div class="memory-review-state" id="memoryReviewState"></div>
         </section>
         <div class="tags" id="detailTags"></div>
         <details class="graph-guide" id="graphGuide">
-          <summary>图谱关系说明</summary>
+          <summary>Relationship guide</summary>
           <div class="guide-body">
-            <div class="record-label">任务结构</div>
+            <div class="record-label">Task structure</div>
             <div class="guide-row">
               <span class="guide-node" aria-hidden="true"></span>
-              <span><strong>拖拽节点</strong>：可调整布局，连线会实时跟随。</span>
+              <span><strong>Drag nodes:</strong> Adjust the layout while connected edges update live.</span>
             </div>
             <div class="guide-row">
               <span class="guide-node context" aria-hidden="true"></span>
-              <span><strong>上下文任务</strong>：帮助理解关系，但不是当前直接命中。</span>
+              <span><strong>Context task:</strong> Provides relationship context but is not a direct match.</span>
             </div>
             <div class="guide-row">
               <span class="guide-line" aria-hidden="true"></span>
-              <span><strong>灰色实线</strong>：项目包含这个任务。</span>
+              <span><strong>Gray solid line:</strong> The project contains this task.</span>
             </div>
             <div class="guide-row">
               <span class="guide-line fork" aria-hidden="true"></span>
-              <span><strong>紫色实线</strong>：元数据确认的明确分支。</span>
+              <span><strong>Purple solid line:</strong> An explicit fork confirmed by metadata.</span>
             </div>
             <div class="guide-row">
               <span class="guide-line continuation" aria-hidden="true"></span>
-              <span><strong>蓝色虚线</strong>：有证据表明后一个任务继续讨论。</span>
+              <span><strong>Blue dashed line:</strong> Evidence shows that the later task continues the discussion.</span>
             </div>
             <div class="guide-row">
               <span class="guide-line shared-prefix" aria-hidden="true"></span>
-              <span><strong>绿色虚线</strong>：共享对话前缀，但仍是并列任务。</span>
+              <span><strong>Green dashed line:</strong> The tasks share a conversation prefix but remain peers.</span>
             </div>
-            <div class="record-label">内容关联</div>
+            <div class="record-label">Content relationships</div>
             <div class="guide-row">
               <span class="guide-line related" aria-hidden="true"></span>
-              <span><strong>灰色点线</strong>：内容相似，不表达先后、继承或分支。</span>
+              <span><strong>Gray dotted line:</strong> Content is similar; no sequence, inheritance, or fork is implied.</span>
             </div>
             <div class="guide-row">
               <span class="guide-node" aria-hidden="true"></span>
-              <span><strong>记录与记忆</strong>：原始记录是证据，候选记忆是提炼结果。</span>
+              <span><strong>Records and memories:</strong> Source records are evidence; memory candidates are derived summaries.</span>
             </div>
           </div>
         </details>
         <section class="content-section" id="contentSection" hidden>
-          <div class="record-label" id="contentSectionLabel">任务中的原始记录</div>
+          <div class="record-label" id="contentSectionLabel">Source records in this task</div>
           <div class="content-tabs" id="contentTabs"></div>
         </section>
         <div class="content-empty" id="contentEmpty" hidden></div>
         <section class="record-section" id="recordSection" hidden>
           <div class="record-block" id="promptBlock" hidden>
-            <div class="record-label">上一条用户消息</div>
+            <div class="record-label">Previous user message</div>
             <div class="record-prompt" id="sourcePrompt"></div>
           </div>
           <div class="record-block" id="contentBlock" hidden>
-            <div class="record-label" id="contentBlockLabel">原始回答</div>
+            <div class="record-label" id="contentBlockLabel">Original answer</div>
             <div class="record-content" id="recordContent"></div>
           </div>
         </section>
         <div class="meta" id="logSection" hidden>
-          <div class="meta-row"><span>状态</span><span class="value" id="detailStatus"></span></div>
-          <div class="meta-row"><span>记录时间</span><span class="value" id="detailTime"></span></div>
-          <div class="meta-row" id="sourceTitleRow"><span>来源任务</span><span class="value" id="sourceTitle"></span></div>
-          <div class="meta-row" id="sourceThreadRow"><span>任务 ID</span><span class="value" id="sourceThreadId"></span></div>
+          <div class="meta-row"><span>Status</span><span class="value" id="detailStatus"></span></div>
+          <div class="meta-row"><span>Recorded at</span><span class="value" id="detailTime"></span></div>
+          <div class="meta-row" id="sourceTitleRow"><span>Source task</span><span class="value" id="sourceTitle"></span></div>
+          <div class="meta-row" id="sourceThreadRow"><span>Task ID</span><span class="value" id="sourceThreadId"></span></div>
           <div class="meta-row" id="sourceTurnRow"><span>Turn ID</span><span class="value" id="sourceTurnId"></span></div>
-          <div class="meta-row" id="sourceRoleRow"><span>消息角色</span><span class="value" id="sourceRole"></span></div>
-          <div class="meta-row" id="duplicateRow"><span>日志去重</span><span class="value" id="duplicateCount"></span></div>
-          <div class="meta-row" id="copiesRow"><span>来源副本</span><span class="value" id="sourceCopies"></span></div>
-          <div class="meta-row" id="memoryTypeRow"><span>记忆类型</span><span class="value" id="memoryType"></span></div>
-          <div class="meta-row" id="memoryStatusRow"><span>记忆状态</span><span class="value" id="memoryStatus"></span></div>
-          <div class="meta-row" id="evidenceTypeRow"><span>提取依据</span><span class="value" id="evidenceType"></span></div>
-          <div class="meta-row" id="memoryConfidenceRow"><span>提取置信度</span><span class="value" id="memoryConfidence"></span></div>
-          <div class="meta-row"><span>节点 ID</span><span class="value" id="detailId"></span></div>
-          <div class="meta-row"><span>工作目录</span><span class="value" id="detailCwd"></span></div>
+          <div class="meta-row" id="sourceRoleRow"><span>Message role</span><span class="value" id="sourceRole"></span></div>
+          <div class="meta-row" id="duplicateRow"><span>Log deduplication</span><span class="value" id="duplicateCount"></span></div>
+          <div class="meta-row" id="copiesRow"><span>Source copies</span><span class="value" id="sourceCopies"></span></div>
+          <div class="meta-row" id="memoryTypeRow"><span>Memory type</span><span class="value" id="memoryType"></span></div>
+          <div class="meta-row" id="memoryStatusRow"><span>Memory status</span><span class="value" id="memoryStatus"></span></div>
+          <div class="meta-row" id="evidenceTypeRow"><span>Extraction evidence</span><span class="value" id="evidenceType"></span></div>
+          <div class="meta-row" id="memoryConfidenceRow"><span>Extraction confidence</span><span class="value" id="memoryConfidence"></span></div>
+          <div class="meta-row"><span>Node ID</span><span class="value" id="detailId"></span></div>
+          <div class="meta-row"><span>Working directory</span><span class="value" id="detailCwd"></span></div>
         </div>
         <div class="detail-actions">
-          <button class="action primary" id="openTask">打开来源任务</button>
-          <button class="action continue" id="continueWithRecord">带着这条记录继续</button>
-          <button class="action" id="copyRecord">复制原始回答</button>
-          <button class="action" id="inspectTask">查看这条记录的上下文</button>
-          <button class="action" id="copyTaskTitle">复制任务名称</button>
+          <button class="action primary" id="openTask">Open source task</button>
+          <button class="action continue" id="continueWithRecord">Continue with this record</button>
+          <button class="action" id="copyRecord">Copy original answer</button>
+          <button class="action" id="inspectTask">Inspect record context</button>
+          <button class="action" id="copyTaskTitle">Copy task title</button>
         </div>
       </div>
     </aside>
@@ -1840,12 +1840,12 @@
 
       const demoGraph = {
         version: 1,
-        title: "会话图谱",
-        scope: "ta-common-service",
+        title: "Conversation graph",
+        scope: "sample-project",
         query: "",
         mode: "project",
         generatedAt: new Date().toISOString(),
-        rootProjectId: "project-ta-common-service",
+        rootProjectId: "project-sample-project",
         retrieval: {
           strategy: "record-first",
           scannedTasks: 6,
@@ -1857,117 +1857,117 @@
         },
         nodes: [
           {
-            id: "project-ta-common-service",
-            title: "ta-common-service",
-            summary: "当前 Codex 项目 · 5 个任务",
-            kind: "project", status: "active", cluster: "项目",
-            tags: ["项目"], updatedAt: Date.now(),
-            cwd: "/project/ta-common-service"
+            id: "project-sample-project",
+            title: "sample-project",
+            summary: "Current Codex project · 5 tasks",
+            kind: "project", status: "active", cluster: "Project",
+            tags: ["Project"], updatedAt: Date.now(),
+            cwd: "/project/sample-project"
           },
           {
             id: "thread-root",
-            title: "梳理数据范围的产品逻辑",
-            summary: "定义用户筛选与事件筛选如何组合，并识别当前表达的歧义。",
-            kind: "thread", status: "idle", cluster: "数据范围",
-            tags: ["PRD", "筛选逻辑"], updatedAt: Date.now() - 86400000 * 6,
-            cwd: "/project/ta-common-service"
+            title: "Clarify product logic for data scope",
+            summary: "Define how user and event filters combine, and identify ambiguity in the current wording.",
+            kind: "thread", status: "idle", cluster: "Data scope",
+            tags: ["PRD", "Filter logic"], updatedAt: Date.now() - 86400000 * 6,
+            cwd: "/project/sample-project"
           },
           {
             id: "thread-branch-a",
-            title: "方案 A：顶层 AND / OR",
-            summary: "保留两个独立筛选区，用顶层操作符决定交集或并集。",
-            kind: "thread", status: "idle", cluster: "数据范围",
-            tags: ["方案 A", "AND/OR"], updatedAt: Date.now() - 86400000 * 5,
-            cwd: "/project/ta-common-service"
+            title: "Option A: top-level AND / OR",
+            summary: "Keep two independent filter sections and use a top-level operator to choose intersection or union.",
+            kind: "thread", status: "idle", cluster: "Data scope",
+            tags: ["Option A", "AND/OR"], updatedAt: Date.now() - 86400000 * 5,
+            cwd: "/project/sample-project"
           },
           {
             id: "record-default-and",
-            title: "原始回答：默认组合方式",
-            summary: "保留用户问题与完整回答，并绑定来源任务和 Turn。",
-            content: "建议默认使用 AND，因为大多数用户是在逐步缩小数据范围。需要并集时，再显式切换为 OR。",
-            kind: "record", status: "found", cluster: "原始记录",
-            tags: ["原始回答", "AND", "决策依据"],
+            title: "Original answer: default combination",
+            summary: "Preserve the user prompt and full answer, linked to the source task and Turn.",
+            content: "Use AND by default because most users progressively narrow the data scope. Switch explicitly to OR when a union is needed.",
+            kind: "record", status: "found", cluster: "Source records",
+            tags: ["Original answer", "AND", "Decision evidence"],
             updatedAt: Date.now() - 86400000 * 4,
-            matchReason: "包含“默认组合方式”的原始回答",
+            matchReason: "Contains the original answer about the default combination",
             matchType: "exact",
             matchScore: 0.98,
             source: {
               threadId: "thread-branch-a",
               turnId: "turn-default-and",
-              threadTitle: "方案 A：顶层 AND / OR",
+              threadTitle: "Option A: top-level AND / OR",
               role: "assistant",
               timestamp: Date.now() - 86400000 * 4,
-              prompt: "默认应该用 AND 还是 OR？",
-              excerpt: "建议默认使用 AND",
+              prompt: "Should the default be AND or OR?",
+              excerpt: "Use AND by default",
               duplicateCount: 2,
-              cwd: "/project/ta-common-service"
+              cwd: "/project/sample-project"
             }
           },
           {
             id: "decision-a",
-            title: "决策：默认使用 AND",
-            summary: "默认缩小数据范围，同时让高级用户显式切换到 OR。",
-            kind: "decision", status: "accepted", cluster: "数据范围",
-            tags: ["决策"], updatedAt: Date.now() - 86400000 * 4,
-            matchReason: "由原始回答提炼出的最终结论",
+            title: "Decision: use AND by default",
+            summary: "Narrow the data scope by default while allowing advanced users to switch explicitly to OR.",
+            kind: "decision", status: "accepted", cluster: "Data scope",
+            tags: ["Decision"], updatedAt: Date.now() - 86400000 * 4,
+            matchReason: "Final conclusion derived from the original answer",
             matchType: "semantic",
             matchScore: 0.91,
             source: {
               threadId: "thread-branch-a",
               turnId: "turn-default-and",
-              threadTitle: "方案 A：顶层 AND / OR",
+              threadTitle: "Option A: top-level AND / OR",
               role: "assistant",
-              prompt: "默认应该用 AND 还是 OR？",
-              excerpt: "建议默认使用 AND",
+              prompt: "Should the default be AND or OR?",
+              excerpt: "Use AND by default",
               duplicateCount: 2,
-              cwd: "/project/ta-common-service"
+              cwd: "/project/sample-project"
             }
           },
           {
             id: "thread-branch-b",
-            title: "方案 B：拆为两个独立入口",
-            summary: "把用户范围和事件范围拆开，降低单个配置器的认知负担。",
-            kind: "thread", status: "idle", cluster: "交互方案",
-            tags: ["方案 B", "信息架构"], updatedAt: Date.now() - 86400000 * 5,
-            cwd: "/project/ta-common-service"
+            title: "Option B: split into two entry points",
+            summary: "Separate user scope from event scope to reduce the cognitive load of one configuration surface.",
+            kind: "thread", status: "idle", cluster: "Interaction design",
+            tags: ["Option B", "Information architecture"], updatedAt: Date.now() - 86400000 * 5,
+            cwd: "/project/sample-project"
           },
           {
             id: "artifact-flow",
-            title: "数据范围交互流程图",
-            summary: "记录配置、预览、保存和二次编辑的完整状态流转。",
-            kind: "artifact", status: "ready", cluster: "交互方案",
-            tags: ["流程图", "原型"], updatedAt: Date.now() - 86400000 * 3
+            title: "Data-scope interaction flow",
+            summary: "Document the complete state flow for configuration, preview, save, and later editing.",
+            kind: "artifact", status: "ready", cluster: "Interaction design",
+            tags: ["Flowchart", "Prototype"], updatedAt: Date.now() - 86400000 * 3
           },
           {
             id: "thread-sql",
-            title: "验证 restricted_event 的 SQL 语义",
-            summary: "确认 INNER JOIN 形成的交集与产品中的 AND 表达一致。",
-            kind: "thread", status: "idle", cluster: "技术验证",
+            title: "Validate restricted_event SQL semantics",
+            summary: "Confirm that the INNER JOIN intersection matches the product's AND behavior.",
+            kind: "thread", status: "idle", cluster: "Technical validation",
             tags: ["SQL", "restricted_event"], updatedAt: Date.now() - 86400000 * 3,
-            cwd: "/project/ta-common-service"
+            cwd: "/project/sample-project"
           },
           {
             id: "thread-union",
-            title: "用 UNION 实现事件或用户命中",
-            summary: "评估 OR 语义下的查询改造、去重成本和性能风险。",
-            kind: "thread", status: "active", cluster: "技术验证",
-            tags: ["UNION", "性能"], updatedAt: Date.now() - 3600000 * 6,
-            cwd: "/project/ta-common-service"
+            title: "Use UNION for event-or-user matches",
+            summary: "Evaluate query changes, deduplication cost, and performance risk for OR behavior.",
+            kind: "thread", status: "active", cluster: "Technical validation",
+            tags: ["UNION", "Performance"], updatedAt: Date.now() - 3600000 * 6,
+            cwd: "/project/sample-project"
           },
           {
             id: "milestone",
-            title: "PRD v2 可评审",
-            summary: "产品表达与 SQL 实现已经对齐，遗留问题进入风险清单。",
-            kind: "milestone", status: "ready", cluster: "交付",
-            tags: ["里程碑", "PRD"], updatedAt: Date.now() - 3600000
+            title: "PRD v2 ready for review",
+            summary: "Product behavior and SQL implementation are aligned; remaining issues move to the risk list.",
+            kind: "milestone", status: "ready", cluster: "Delivery",
+            tags: ["Milestone", "PRD"], updatedAt: Date.now() - 3600000
           }
         ],
         edges: [
-          { id: "m1", source: "project-ta-common-service", target: "thread-root", type: "membership", confidence: 1 },
-          { id: "m2", source: "project-ta-common-service", target: "thread-branch-a", type: "membership", confidence: 1 },
-          { id: "m3", source: "project-ta-common-service", target: "thread-branch-b", type: "membership", confidence: 1 },
-          { id: "m4", source: "project-ta-common-service", target: "thread-sql", type: "membership", confidence: 1 },
-          { id: "m5", source: "project-ta-common-service", target: "thread-union", type: "membership", confidence: 1 },
+          { id: "m1", source: "project-sample-project", target: "thread-root", type: "membership", confidence: 1 },
+          { id: "m2", source: "project-sample-project", target: "thread-branch-a", type: "membership", confidence: 1 },
+          { id: "m3", source: "project-sample-project", target: "thread-branch-b", type: "membership", confidence: 1 },
+          { id: "m4", source: "project-sample-project", target: "thread-sql", type: "membership", confidence: 1 },
+          { id: "m5", source: "project-sample-project", target: "thread-union", type: "membership", confidence: 1 },
           { id: "e1", source: "thread-root", target: "thread-branch-a", type: "fork", confidence: 1 },
           { id: "e2", source: "thread-root", target: "thread-branch-b", type: "fork", confidence: 1 },
           { id: "e3", source: "thread-branch-a", target: "record-default-and", type: "contains", confidence: 1 },
@@ -1990,44 +1990,44 @@
       ];
 
       const kindLabels = {
-        project: "项目",
-        record: "原始记录",
-        memory: "候选记忆",
-        thread: "任务",
-        decision: "决策",
-        artifact: "产物",
-        milestone: "里程碑"
+        project: "Project",
+        record: "Source records",
+        memory: "Memory candidates",
+        thread: "Task",
+        decision: "Decision",
+        artifact: "Artifact",
+        milestone: "Milestone"
       };
       const matchLabels = {
-        exact: "精确匹配",
-        semantic: "语义匹配",
-        context: "上下文"
+        exact: "Exact match",
+        semantic: "Semantic match",
+        context: "Context"
       };
       const roleLabels = {
-        user: "用户",
+        user: "User",
         assistant: "AI",
-        system: "系统"
+        system: "System"
       };
       const memoryTypeLabels = {
-        decision: "决策",
-        fact: "事实",
-        requirement: "需求",
-        "open-question": "待回答问题",
-        plan: "计划",
-        definition: "定义",
-        insight: "洞察"
+        decision: "Decision",
+        fact: "Fact",
+        requirement: "Requirement",
+        "open-question": "Open question",
+        plan: "Plan",
+        definition: "Definition",
+        insight: "Insight"
       };
       const memoryStatusLabels = {
-        candidate: "候选（待确认）",
-        confirmed: "已确认",
-        corrected: "已修正",
-        superseded: "已被替代",
-        rejected: "已否决"
+        candidate: "Candidate (needs review)",
+        confirmed: "Confirmed",
+        corrected: "Corrected",
+        superseded: "Superseded",
+        rejected: "Rejected"
       };
       const evidenceTypeLabels = {
-        "explicit-statement": "原回答中的明确陈述",
-        inferred: "模型推断",
-        manual: "用户手动创建"
+        "explicit-statement": "Explicit statement in source answer",
+        inferred: "Model inference",
+        manual: "Created manually by user"
       };
       const NODE_WIDTH = 256;
       const NODE_HEIGHT = 136;
@@ -2131,8 +2131,8 @@
         text = escapeHtml(text)
           .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
           .replace(/__([^_\n]+)__/g, "<strong>$1</strong>")
-          .replace(/(^|[\s(])\*([^*\n]+)\*(?=$|[\s).,!?:;，。！？：；）])/g, "$1<em>$2</em>")
-          .replace(/(^|[\s(])_([^_\n]+)_(?=$|[\s).,!?:;，。！？：；）])/g, "$1<em>$2</em>");
+          .replace(/(^|[\s(])\*([^*\n]+)\*(?=$|[\s).,!?:;\uFF0C\u3002\uFF01\uFF1F\uFF1A\uFF1B\uFF09])/g, "$1<em>$2</em>")
+          .replace(/(^|[\s(])_([^_\n]+)_(?=$|[\s).,!?:;\uFF0C\u3002\uFF01\uFF1F\uFF1A\uFF1B\uFF09])/g, "$1<em>$2</em>");
 
         return text.replace(/\u0001MD(\d+)\u0001/g, (_, index) =>
           protectedHtml[Number(index)] || "");
@@ -2312,14 +2312,14 @@
         const query = state.query.trim() || String(state.graph.query || "").trim();
         const source = record.source || {};
         const fields = [
-          ["上一条用户消息", source.prompt],
-          ["原始回答", record.content],
-          ["来源任务标题", source.threadTitle],
+          ["Previous user message", source.prompt],
+          ["Original answer", record.content],
+          ["Source task title", source.threadTitle],
         ];
         for (const [location, value] of fields) {
           if (query && String(value || "").toLocaleLowerCase().includes(query.toLocaleLowerCase())) {
             return {
-              location: `${location} · ${matchLabels[record.matchType] || "匹配"}`,
+              location: `${location} · ${matchLabels[record.matchType] || "Match"}`,
               text: excerptAround(value, query),
               query,
             };
@@ -2328,8 +2328,8 @@
         const fallback = source.excerpt || record.content || record.summary || record.matchReason;
         if (!fallback) return null;
         return {
-          location: `${record.matchType === "semantic" ? "语义证据" : "来源摘录"} · ${
-            Number.isFinite(Number(record.matchScore)) ? `${Math.round(Number(record.matchScore) * 100)}%` : "待核验"
+          location: `${record.matchType === "semantic" ? "Semantic evidence" : "Source excerpt"} · ${
+            Number.isFinite(Number(record.matchScore)) ? `${Math.round(Number(record.matchScore) * 100)}%` : "Needs verification"
           }`,
           text: excerptAround(fallback, ""),
           query: "",
@@ -2351,32 +2351,32 @@
       function renderResults() {
         const records = matchingRecords();
         const query = state.query.trim() || state.graph.query || "";
-        el("resultViewTitle").textContent = query ? `“${query}”的原始记录` : "项目原始记录";
+        el("resultViewTitle").textContent = query ? `Source records for “${query}”` : "Project source records";
         el("resultViewSummary").textContent = records.length
-          ? `${records.length} 条记录 · 优先展示精确命中和用户确认结果`
-          : "没有可信原始记录。换一个关键词，或明确返回未找到。";
+          ? `${records.length} records · exact matches and user-confirmed results first`
+          : "No trustworthy source records were found. Try another keyword or return a clear not-found result.";
         el("resultList").innerHTML = records.length
           ? records.slice(0, 12).map((record, index) => {
             const owner = state.graph.nodes.find((node) => node.id === ownerThreadId(record));
             const evidence = evidenceFor(record);
             const statusClass = record.userFeedback || "";
             const statusText = record.userFeedback === "correct"
-              ? "已确认"
+              ? "Confirmed"
               : record.userFeedback === "incorrect"
-                ? "已排除"
+                ? "Excluded"
                 : `${Math.round(Number(record.matchScore || 0) * 100)}%`;
             return `<button class="result-card ${state.selectedContentId === record.id ? "active" : ""}"
               data-record-id="${escapeHtml(record.id)}" data-thread-id="${escapeHtml(ownerThreadId(record))}">
               <span class="result-rank">${index + 1}</span>
               <span class="result-card-main">
-                <span class="result-source">${escapeHtml(owner?.title || record.source?.threadTitle || "未知来源任务")}</span>
+                <span class="result-source">${escapeHtml(owner?.title || record.source?.threadTitle || "Unknown source task")}</span>
                 <span class="result-card-title">${highlightText(record.title, query)}</span>
                 <span class="result-excerpt">${highlightText(evidence?.text || record.summary || "", query)}</span>
               </span>
               <span class="result-score ${escapeHtml(statusClass)}">${escapeHtml(statusText)}</span>
             </button>`;
           }).join("")
-          : `<div class="result-empty">没有找到可验证的原始记录。<br>MemoryGraph 不会为填满结果而生成一条看似合理的答案。</div>`;
+          : `<div class="result-empty">No verifiable source records were found.<br>MemoryGraph will not invent a plausible answer just to fill the result list.</div>`;
 
         el("resultList").querySelectorAll(".result-card").forEach((button) => {
           button.addEventListener("click", () => {
@@ -2583,17 +2583,17 @@
               style="left:${pos.x}px;top:${pos.y}px;--accent:${accent}"
               tabindex="0" role="button" aria-label="${escapeHtml(node.title)}" aria-pressed="${state.selectedId === node.id}">
               <div class="node-head">
-                <span class="kind">${escapeHtml(kindLabels[node.kind] || "任务")}</span>
+                <span class="kind">${escapeHtml(kindLabels[node.kind] || "Task")}</span>
                 <span class="node-head-meta">
-                  <span class="selected-label">已选中</span>
-                  <span class="context-label">上下文</span>
+                  <span class="selected-label">Selected</span>
+                  <span class="context-label">Context</span>
                   <span class="status-dot ${escapeHtml(node.status || "")}"></span>
                 </span>
               </div>
               <h3 class="node-title">${escapeHtml(node.title)}</h3>
-              <p class="node-summary">${escapeHtml(node.summary || "暂无摘要")}</p>
+              <p class="node-summary">${escapeHtml(node.summary || "No summary")}</p>
               ${node.kind === "thread"
-                ? `<span class="node-related-count ${contentMatches ? "has-messages" : ""}" title="${contentMatches} 条与当前检索相关的消息">${contentMatches ? `命中 ${contentMatches} 条` : "无直接命中"}</span>
+                ? `<span class="node-related-count ${contentMatches ? "has-messages" : ""}" title="${contentMatches} messages related to the current search">${contentMatches ? `Matched ${contentMatches} records` : "No direct match"}</span>
                   ${bestRank ? `<span class="node-match-rank">Top ${bestRank}</span>` : ""}`
                 : ""}
             </article>`;
@@ -2711,11 +2711,11 @@
 
       function edgeShortLabel(edge) {
         const label = {
-          fork: "明确分支",
-          "shared-prefix": "共享上下文",
-          continuation: "继续讨论",
-          related: "内容相关"
-        }[edge.type] || edge.label || "相关";
+          fork: "Explicit fork",
+          "shared-prefix": "Shared context",
+          continuation: "Continuation",
+          related: "Content-related"
+        }[edge.type] || edge.label || "Related";
         return edge.type === "related" && edge.confidence
           ? `${label} ${Math.round(edge.confidence * 100)}%`
           : label;
@@ -2723,15 +2723,15 @@
 
       function edgeLabel(edge) {
         const type = {
-          membership: "属于项目",
-          fork: "明确分支",
-          "shared-prefix": "共享对话前缀",
-          continuation: "继续讨论",
-          related: "内容相关",
-          contains: "包含原始记录",
-          derived: "由原始记录提炼"
-        }[edge.type] || "相关";
-        return `${edge.label || type} · 置信度 ${Math.round((edge.confidence || 0) * 100)}%`;
+          membership: "Belongs to project",
+          fork: "Explicit fork",
+          "shared-prefix": "Shared conversation prefix",
+          continuation: "Continuation",
+          related: "Content-related",
+          contains: "Contains source record",
+          derived: "Derived from source record"
+        }[edge.type] || "Related";
+        return `${edge.label || type} · Confidence ${Math.round((edge.confidence || 0) * 100)}%`;
       }
 
       function renderFilters() {
@@ -2771,23 +2771,23 @@
         const explicitForks = primaryEdges().filter((edge) => edge.type === "fork").length;
         const retrieval = state.graph.retrieval || {};
         const query = state.graph.query
-          ? `<br>当前检索：<strong>${escapeHtml(state.graph.query)}</strong>`
+          ? `<br>Current search: <strong>${escapeHtml(state.graph.query)}</strong>`
           : "";
         const scan = retrieval.scannedTasks
-          ? `<br>扫描 ${retrieval.scannedTasks} 个任务 · 精读 ${retrieval.candidateTasks || 0} 个`
+          ? `<br>Scanned ${retrieval.scannedTasks} tasks · closely read ${retrieval.candidateTasks || 0} tasks`
           : "";
         const index = retrieval.indexMode
-          ? `<br>本地索引：${escapeHtml(retrieval.indexMode === "incremental" ? "增量更新" : "完整构建")}` +
-            ` · 变更 ${retrieval.changedFiles || 0} · 复用 ${retrieval.reusedFiles || 0}`
+          ? `<br>Local index: ${escapeHtml(retrieval.indexMode === "incremental" ? "Incremental refresh" : "Full build")}` +
+            ` · Changed ${retrieval.changedFiles || 0} · Reused ${retrieval.reusedFiles || 0}`
           : "";
         const snapshot = state.graph.snapshot?.fileName
-          ? `<br>本地快照：<strong>${escapeHtml(state.graph.snapshot.fileName)}</strong>`
+          ? `<br>Local snapshot: <strong>${escapeHtml(state.graph.snapshot.fileName)}</strong>`
           : "";
         el("stats").innerHTML =
-          `<strong>1</strong> 个项目 · <strong>${tasks}</strong> 个任务<br>` +
-          `<strong>${taskRelations}</strong> 条任务结构 · <strong>${contentRelations}</strong> 条内容关联<br>` +
-          `<strong>${explicitForks}</strong> 条明确分支<br>` +
-          `${records} 条原始记录 · ${memories} 个候选记忆${scan}${index}${query}${snapshot}`;
+          `<strong>1</strong> project · <strong>${tasks}</strong> tasks<br>` +
+          `<strong>${taskRelations}</strong> task relationships · <strong>${contentRelations}</strong> content relationships<br>` +
+          `<strong>${explicitForks}</strong> explicit forks<br>` +
+          `${records} source records · ${memories} memory candidates${scan}${index}${query}${snapshot}`;
       }
 
       function renderHeaderMetrics() {
@@ -2795,9 +2795,9 @@
         const records = state.graph.nodes.filter((node) => node.kind === "record").length;
         const memories = state.graph.nodes.filter((node) => node.kind === "memory").length;
         el("headerMetrics").innerHTML = [
-          `<span class="metric"><strong>${tasks}</strong>任务</span>`,
-          `<span class="metric"><strong>${records}</strong>记录</span>`,
-          `<span class="metric"><strong>${memories}</strong>记忆</span>`
+          `<span class="metric"><strong>${tasks}</strong> tasks</span>`,
+          `<span class="metric"><strong>${records}</strong> records</span>`,
+          `<span class="metric"><strong>${memories}</strong> memories</span>`
         ].join("");
       }
 
@@ -2856,8 +2856,8 @@
         });
 
         el("resultPill").textContent = query
-          ? `${matchedRecords.size} 条原始记录 · ${matchedMemories.size} 个候选记忆 · ${matchedTasks.size} 个任务`
-          : `1 个项目 · ${primaryNodes().filter((node) => node.kind === "thread").length} 个任务`;
+          ? `${matchedRecords.size} source records · ${matchedMemories.size} memory candidates · ${matchedTasks.size} tasks`
+          : `1 project · ${primaryNodes().filter((node) => node.kind === "thread").length} tasks`;
         renderResults();
       }
 
@@ -2876,12 +2876,12 @@
       }
 
       function formatTime(value) {
-        if (!value) return "未知";
+        if (!value) return "Unknown";
         let timestamp = Number(value);
         if (Number.isFinite(timestamp) && timestamp < 1e12) timestamp *= 1000;
         const date = Number.isFinite(timestamp) ? new Date(timestamp) : new Date(value);
         if (Number.isNaN(date.getTime())) return String(value);
-        return new Intl.DateTimeFormat("zh-CN", {
+        return new Intl.DateTimeFormat("en-US", {
           year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
         }).format(date);
       }
@@ -2927,18 +2927,18 @@
         const matchNode = activeContent || node;
         detail.style.setProperty("--accent", accent);
         el("detailKind").textContent = [
-          kindLabels[node.kind] || "任务",
+          kindLabels[node.kind] || "Task",
           matchLabels[matchNode.matchType]
         ].filter(Boolean).join(" · ");
         el("detailTitle").textContent = node.title;
-        el("detailSummary").textContent = node.summary || "暂无摘要";
-        el("detailStatus").textContent = node.status || "未知";
+        el("detailSummary").textContent = node.summary || "No summary";
+        el("detailStatus").textContent = node.status || "Unknown";
         el("detailTime").textContent = formatTime(sourceTime);
         el("detailId").textContent = node.id;
-        el("detailCwd").textContent = sourceCwd || "未提供";
+        el("detailCwd").textContent = sourceCwd || "Not provided";
         el("matchReason").hidden = logMode || !matchNode.matchReason;
         el("matchReason").textContent = matchNode.matchReason
-          ? `匹配理由：${matchNode.matchReason}${matchNode.matchScore ? ` · ${Math.round(matchNode.matchScore * 100)}%` : ""}`
+          ? `Match reason: ${matchNode.matchReason}${matchNode.matchScore ? ` · ${Math.round(matchNode.matchScore * 100)}%` : ""}`
           : "";
         const evidence = activeContent?.kind === "record" ? evidenceFor(activeContent) : null;
         el("evidencePanel").hidden = logMode || !evidence;
@@ -2960,7 +2960,7 @@
           button.disabled = active;
         });
         el("memoryReviewState").textContent = activeContent?.kind === "memory"
-          ? `当前状态：${memoryStatusLabels[activeContent.memoryStatus] || activeContent.memoryStatus || "候选"}${
+          ? `Current status: ${memoryStatusLabels[activeContent.memoryStatus] || activeContent.memoryStatus || "Candidate"}${
             activeContent.reviewedAt ? ` · ${formatTime(activeContent.reviewedAt)}` : ""
           }`
           : "";
@@ -2981,23 +2981,23 @@
           button.setAttribute("aria-pressed", String(active));
         });
         el("contentSection").hidden = logMode || !contents.length;
-        const contentScopeLabel = node.kind === "project" ? "项目" : "任务";
+        const contentScopeLabel = node.kind === "project" ? "Project" : "Task";
         el("contentSectionLabel").textContent = state.contentKind === "memory"
-          ? `${contentScopeLabel}中的候选记忆`
-          : `${contentScopeLabel}中的原始记录`;
+          ? `${contentScopeLabel} memory candidates`
+          : `${contentScopeLabel} source records`;
         const emptyContentTab = !logMode && contents.length === 0;
         el("contentEmpty").hidden = !emptyContentTab;
         el("contentEmpty").textContent = state.contentKind === "memory"
-          ? `当前${contentScopeLabel}还没有候选记忆。候选记忆只会从带有“结论”“最终结论”或“一句话总结”等明确标记的原始回答中提取。`
-          : `当前${contentScopeLabel}没有可展示的原始记录。可以刷新本地索引，或选择包含检索命中的其他任务。`;
+          ? `${contentScopeLabel} has no memory candidates yet. Candidates are extracted only from source answers with explicit markers such as “Conclusion,” “Final conclusion,” or “One-line summary.”`
+          : `${contentScopeLabel} has no source records to display. Refresh the local index or select another task with a search match.`;
         el("contentTabs").innerHTML = contents.map((content) =>
           `<button class="content-tab ${content.id === activeContent?.id ? "active" : ""}" data-content-id="${escapeHtml(content.id)}">
-            <span class="tab-kind">${escapeHtml(kindLabels[content.kind] || "内容")}</span>
+            <span class="tab-kind">${escapeHtml(kindLabels[content.kind] || "Content")}</span>
             <span class="tab-title">${escapeHtml(content.title)}</span>
             <span class="tab-state ${escapeHtml(content.matchType || "")}">${escapeHtml(
               content.kind === "memory"
-                ? (memoryStatusLabels[content.memoryStatus] || "候选")
-                : (matchLabels[content.matchType] || "上下文")
+                ? (memoryStatusLabels[content.memoryStatus] || "Candidate")
+                : (matchLabels[content.matchType] || "Context")
             )}</span>
           </button>`).join("");
         el("contentTabs").querySelectorAll(".content-tab").forEach((button) => {
@@ -3011,8 +3011,8 @@
         el("promptBlock").hidden = !source.prompt;
         el("contentBlock").hidden = !activeContent?.content;
         el("contentBlockLabel").textContent = activeContent?.kind === "memory"
-          ? "候选记忆（由下方来源记录提取）"
-          : "原始回答";
+          ? "Memory candidate (derived from the source record below)"
+          : "Original answer";
         el("sourcePrompt").textContent = source.prompt || "";
         el("recordContent").innerHTML = renderMarkdown(activeContent?.content || "");
 
@@ -3022,11 +3022,11 @@
           ["sourceTurnRow", "sourceTurnId", source.turnId],
           ["sourceRoleRow", "sourceRole", roleLabels[source.role] || source.role],
           ["duplicateRow", "duplicateCount", source.duplicateCount > 1
-            ? `${source.duplicateCount} 份日志副本已合并为 1 条`
+            ? `${source.duplicateCount} log copies merged into one record`
             : ""],
           ["copiesRow", "sourceCopies", Array.isArray(source.copies) && source.copies.length
             ? source.copies.map((copy) =>
-              typeof copy === "string" ? copy : (copy.threadTitle || copy.threadId)).filter(Boolean).join("、")
+              typeof copy === "string" ? copy : (copy.threadTitle || copy.threadId)).filter(Boolean).join(", ")
             : ""],
           ["memoryTypeRow", "memoryType", activeContent?.kind === "memory"
             ? (memoryTypeLabels[activeContent.memoryType] || activeContent.memoryType)
@@ -3053,7 +3053,7 @@
         el("inspectTask").hidden = !sourceThreadId;
         el("copyTaskTitle").hidden = !sourceThreadId;
         el("copyRecord").hidden = logMode || !activeContent?.content;
-        el("copyRecord").textContent = activeContent?.kind === "memory" ? "复制候选记忆" : "复制原始回答";
+        el("copyRecord").textContent = activeContent?.kind === "memory" ? "Copy memory candidate" : "Copy original answer";
       }
 
       function applyTransform() {
@@ -3115,7 +3115,7 @@
             return true;
           }
         } catch (error) {
-          showToast(`无法发送：${error.message || error}`);
+          showToast(`Could not send: ${error.message || error}`);
           return false;
         }
         return false;
@@ -3127,7 +3127,7 @@
         try {
           return await api.callTool(name, args);
         } catch (error) {
-          showToast(`本地持久化暂不可用：${error.message || error}`);
+          showToast(`Local persistence is temporarily unavailable: ${error.message || error}`);
           return null;
         }
       }
@@ -3185,40 +3185,40 @@
 
       function continuationRequest({ task, content, source, threadId, turnId }) {
         const lines = [
-          `请基于下面这条经过来源验证的 MemoryGraph 记录继续工作。`,
-          `项目：${state.graph.scope || "当前项目"}`,
-          `来源任务：${source.threadTitle || task?.title || "未知"}`,
-          `来源任务 ID：${threadId || "未知"}`,
+          `Continue from the source-verified MemoryGraph record below.`,
+          `Project: ${state.graph.scope || "Current project"}`,
+          `Source task: ${source.threadTitle || task?.title || "Unknown"}`,
+          `Source task ID: ${threadId || "Unknown"}`,
         ];
-        if (turnId) lines.push(`来源 Turn ID：${turnId}`);
-        if (source.prompt) lines.push(`当时的用户问题：${source.prompt}`);
+        if (turnId) lines.push(`Source Turn ID: ${turnId}`);
+        if (source.prompt) lines.push(`Original user prompt: ${source.prompt}`);
         lines.push(
           "",
-          "经过验证的原始内容：",
+          "Verified source content:",
           String(content?.content || "").slice(0, 5000),
           "",
-          "请先用一段话说明你如何理解这条记录及其上下文，然后从它继续。不要把候选记忆当作已经确认的事实；需要时重新读取来源任务。"
+          "First explain in one paragraph how you understand this record and its context, then continue from it. Do not treat a memory candidate as a confirmed fact; reread the source task when needed."
         );
         return lines.join("\n");
       }
 
       function recallPrompt(action) {
-        const scope = state.graph.scope || "当前项目";
+        const scope = state.graph.scope || "Current project";
         const prompts = {
           resume: [
-            `请在项目“${scope}”的 MemoryGraph 中恢复最近工作进度。`,
-            "按来源时间找出最近相关任务，返回：已完成、最后确认的决定、当前阻塞、下一步。",
-            "每个结论必须带来源任务 ID 和 Turn ID；不要用无来源摘要补空白。"
+            `Resume recent work in project “${scope}” using MemoryGraph.`,
+            "Use source timestamps to find the most recent relevant tasks and return: completed work, last confirmed decision, current blocker, and next step.",
+            "Every conclusion must include a source task ID and Turn ID. Do not fill gaps with unsupported summaries."
           ],
           decisions: [
-            `请汇总项目“${scope}”最近确认的决策。`,
-            "优先返回已确认记忆，其次返回原始回答中明确写出的结论。",
-            "区分已确认、候选和已被替代的决定，并附来源任务 ID 与 Turn ID。"
+            `Summarize recent confirmed decisions in project “${scope}”.`,
+            "Return confirmed memories first, followed by explicit conclusions in source answers.",
+            "Separate confirmed, candidate, and superseded decisions, and include source task IDs and Turn IDs."
           ],
           "open-questions": [
-            `请整理项目“${scope}”仍未解决的问题。`,
-            "从原始记录、候选记忆和最近任务中查找待确认、TODO、风险和互相冲突的结论。",
-            "按影响排序，并给出每项的来源任务 ID 与 Turn ID。"
+            `Collect unresolved questions in project “${scope}”.`,
+            "Find unresolved items, TODOs, risks, and conflicting conclusions across source records, memory candidates, and recent tasks.",
+            "Rank items by impact and include the source task ID and Turn ID for each."
           ],
         };
         return (prompts[action] || prompts.resume).join("\n");
@@ -3244,17 +3244,17 @@
           link.click();
           return true;
         } catch (error) {
-          showToast(`无法打开来源任务：${error.message || error}`);
+          showToast(`Could not open the source task: ${error.message || error}`);
           return false;
         }
       }
 
-      async function copyText(value, successMessage = "已复制") {
+      async function copyText(value, successMessage = "Copied") {
         try {
           await navigator.clipboard.writeText(value);
           showToast(successMessage);
         } catch {
-          showToast("当前预览无法访问剪贴板");
+          showToast("Clipboard access is unavailable in this preview");
         }
       }
 
@@ -3284,20 +3284,20 @@
 
       function contextRequest({ task, content, source, threadId, turnId }) {
         const lines = [
-          "请查看下面这条 Codex 来源记录的原始上下文。",
-          `来源任务 ID：${threadId}`,
-          `来源任务名称：${source.threadTitle || task?.title || "未知"}`
+          "Inspect the original context of the Codex source record below.",
+          `Source task ID: ${threadId}`,
+          `Source task title: ${source.threadTitle || task?.title || "Unknown"}`
         ];
-        if (turnId) lines.push(`目标 Turn ID：${turnId}`);
-        if (source.timestamp) lines.push(`记录时间：${formatTime(source.timestamp)}`);
-        if (source.prompt) lines.push(`目标回答前的用户消息：${source.prompt}`);
-        if (source.excerpt) lines.push(`目标回答开头：${source.excerpt}`);
-        else if (content?.content) lines.push(`目标回答开头：${content.content.slice(0, 160)}`);
+        if (turnId) lines.push(`Target Turn ID: ${turnId}`);
+        if (source.timestamp) lines.push(`Recorded at: ${formatTime(source.timestamp)}`);
+        if (source.prompt) lines.push(`User message before target answer: ${source.prompt}`);
+        if (source.excerpt) lines.push(`Target answer opening: ${source.excerpt}`);
+        else if (content?.content) lines.push(`Target answer opening: ${content.content.slice(0, 160)}`);
         lines.push(
           "",
-          "请调用 read_thread 读取这个任务，以目标 Turn 为中心返回前后各 2 轮用户与 AI 原文。",
-          "保留消息顺序、角色和时间；不要只依据当前图谱摘要，也不要重新概括原文。",
-          "如果无法按 Turn ID 精确定位，请用时间、上一条用户消息和回答开头共同定位，并明确说明是近似定位。"
+          "Call read_thread for this task and return two user/assistant turns before and after the target Turn.",
+          "Preserve message order, roles, and timestamps. Do not rely only on the graph summary or rewrite the source text.",
+          "If exact Turn ID lookup is unavailable, use the timestamp, preceding user message, and answer opening together, and state clearly that the location is approximate."
         );
         return lines.join("\n");
       }
@@ -3326,7 +3326,7 @@
         state.query = graph.query || "";
         el("searchInput").value = state.query;
         el("graphTitle").textContent = graph.title || "MemoryGraph";
-        el("graphScope").textContent = graph.scope || "当前项目";
+        el("graphScope").textContent = graph.scope || "Current project";
         renderGraph();
         detail.classList.toggle("open", Boolean(state.selectedId));
         requestAnimationFrame(readableStartView);
@@ -3360,8 +3360,8 @@
       document.querySelectorAll(".recall-action").forEach((button) => {
         button.addEventListener("click", async () => {
           const action = button.dataset.recallAction;
-          const sent = await sendFollowUp(recallPrompt(action), "继续项目上下文");
-          showToast(sent ? "已请求 Codex 恢复项目上下文" : "无法直接发送续接请求");
+          const sent = await sendFollowUp(recallPrompt(action), "Continue project context");
+          showToast(sent ? "Asked Codex to restore project context" : "Could not send the continuation request directly");
         });
       });
       document.querySelectorAll(".feedback-button").forEach((button) => {
@@ -3383,7 +3383,7 @@
           });
           renderDetail();
           renderResults();
-          showToast(verdict === "correct" ? "已确认正确记录" : "已标记为错误结果");
+          showToast(verdict === "correct" ? "Confirmed as the correct record" : "Marked as an incorrect result");
         });
       });
       document.querySelectorAll(".memory-review-button").forEach((button) => {
@@ -3406,10 +3406,10 @@
           });
           renderDetail();
           showToast(status === "confirmed"
-            ? "候选记忆已确认"
+            ? "Memory candidate confirmed"
             : status === "rejected"
-              ? "候选记忆已否决"
-              : "已恢复为候选记忆");
+              ? "Memory candidate rejected"
+              : "Reset to memory candidate");
         });
       });
       document.querySelectorAll(".detail-switch-button").forEach((button) => {
@@ -3432,7 +3432,7 @@
           event.stopPropagation();
           const layer = button.dataset.layer;
           if (state.visibleLayers.has(layer) && state.visibleLayers.size === 1) {
-            showToast("至少保留一个关系层");
+            showToast("Keep at least one relationship layer");
             return;
           }
           if (state.visibleLayers.has(layer)) state.visibleLayers.delete(layer);
@@ -3456,43 +3456,43 @@
       });
       el("refreshButton").addEventListener("click", async () => {
         const sent = await sendFollowUp(
-          `刷新 MemoryGraph：增量读取“${state.graph.scope || "当前项目"}”的本地任务记录并更新索引与图谱。`,
-          "刷新 MemoryGraph"
+          `Refresh MemoryGraph: incrementally read local task records for “${state.graph.scope || "Current project"}” and update the index and graph.`,
+          "Refresh MemoryGraph"
         );
-        showToast(sent ? "已请求 Codex 增量刷新" : "请在对话中输入“刷新记忆图谱”");
+        showToast(sent ? "Asked Codex for an incremental refresh" : "Type “Refresh MemoryGraph” in the conversation");
       });
       el("openTask").addEventListener("click", async () => {
         const anchor = selectedSourceAnchor();
         if (!anchor.task || !anchor.threadId) return;
         const opened = await openCodexTask(anchor.threadId);
-        if (opened) showToast("正在打开来源任务");
-        else await copyText(anchor.threadId, "无法直接打开，已复制来源任务 ID");
+        if (opened) showToast("Opening source task");
+        else await copyText(anchor.threadId, "Could not open directly; source task ID copied");
       });
       el("continueWithRecord").addEventListener("click", async () => {
         const anchor = selectedSourceAnchor();
         if (!anchor.task || !anchor.content?.content) return;
         const prompt = continuationRequest(anchor);
-        const sent = await sendFollowUp(prompt, "带着已验证记录继续");
-        if (sent) showToast("已把来源记录交给 Codex 继续");
-        else await copyText(prompt, "无法直接发送，已复制续接上下文");
+        const sent = await sendFollowUp(prompt, "Continue with verified record");
+        if (sent) showToast("Passed the source record to Codex");
+        else await copyText(prompt, "Could not send directly; continuation context copied");
       });
       el("inspectTask").addEventListener("click", async () => {
         const anchor = selectedSourceAnchor();
         if (!anchor.task || !anchor.threadId) return;
         const prompt = contextRequest(anchor);
-        const sent = await sendFollowUp(prompt, "查看记录上下文");
-        if (sent) showToast("已请求 Codex 读取原始上下文");
-        else await copyText(prompt, "无法直接发送，已复制上下文读取指令");
+        const sent = await sendFollowUp(prompt, "Inspect record context");
+        if (sent) showToast("Asked Codex to read the source context");
+        else await copyText(prompt, "Could not send directly; context-inspection instructions copied");
       });
       el("copyRecord").addEventListener("click", () => {
         const { content } = selectedTaskAndContent();
         if (content?.content) {
-          copyText(content.content, content.kind === "memory" ? "已复制候选记忆" : "已复制原始回答");
+          copyText(content.content, content.kind === "memory" ? "Memory candidate copied" : "Original answer copied");
         }
       });
       el("copyTaskTitle").addEventListener("click", () => {
         const { task } = selectedTaskAndContent();
-        if (task) copyText(task.title, "已复制任务名称，可粘贴到 Codex 搜索");
+        if (task) copyText(task.title, "Task title copied; paste it into Codex search");
       });
       detailResizer.addEventListener("pointerdown", (event) => {
         if (window.innerWidth <= 650) return;
@@ -3529,7 +3529,7 @@
       });
       detailResizer.addEventListener("dblclick", () => {
         applyDetailWidth(DETAIL_WIDTH_DEFAULT, { persist: true });
-        showToast("详情栏宽度已恢复默认");
+        showToast("Inspector width reset");
       });
       detailResizer.addEventListener("keydown", (event) => {
         const bounds = detailWidthBounds();

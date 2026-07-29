@@ -13,7 +13,7 @@ const filePath = path.join(temporaryRoot, "product-state.json");
 
 try {
   const cwd = "/tmp/project-a";
-  const query = "webhook 回调";
+  const query = "webhook callback";
   const record = recordRetrievalFeedback({
     cwd,
     query,

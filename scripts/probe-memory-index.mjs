@@ -48,20 +48,20 @@ function session(threadId, turns, timestamp) {
 
 try {
   const shared = [
-    turn("turn-shared-1", "Webhook 是什么？", "Webhook 是事件回调。", "2026-07-29T01:00:00.000Z"),
-    turn("turn-shared-2", "回调如何鉴权？", "用签名鉴权。", "2026-07-29T01:01:00.000Z"),
-    turn("turn-shared-3", "失败后怎么办？", "按退避策略重试。", "2026-07-29T01:02:00.000Z"),
+    turn("turn-shared-1", "What is a webhook?", "A webhook is an event callback.", "2026-07-29T01:00:00.000Z"),
+    turn("turn-shared-2", "How should callbacks be authenticated?", "Use signature-based authentication.", "2026-07-29T01:01:00.000Z"),
+    turn("turn-shared-3", "What happens after a failure?", "Retry with an exponential backoff policy.", "2026-07-29T01:02:00.000Z"),
   ];
   const sourceTurn = turn(
     "turn-routing-source",
-    "讨论 delivery routing 应该放在哪里",
-    "分析若干方案。\n\n## 最终结论\nDelivery routing 应由应用在发送前统一计算，并保留原始规则作为审计证据。",
+    "Where should delivery routing be calculated?",
+    "Several options were reviewed.\n\n## Final conclusion\nThe application should calculate delivery routing before sending and preserve the source rules as audit evidence.",
     "2026-07-29T01:03:00.000Z",
   );
   const branchTurn = turn(
     "turn-routing-branch",
-    "补充 delivery routing 的灰度策略",
-    "Delivery routing 灰度应按工作区开关逐步放量。",
+    "Add a staged rollout strategy for delivery routing",
+    "Roll out delivery routing gradually with workspace-level feature flags.",
     "2026-07-29T02:03:00.000Z",
   );
 
@@ -74,8 +74,8 @@ try {
     session("task-branch", [...shared, sourceTurn, branchTurn], "2026-07-29T02:00:00.000Z"),
   );
   writeFileSync(titleIndexPath, [
-    JSON.stringify({ id: "task-source", thread_name: "确认 Delivery Routing 归属" }),
-    JSON.stringify({ id: "task-branch", thread_name: "补充 Delivery Routing 灰度策略" }),
+    JSON.stringify({ id: "task-source", thread_name: "Confirm Delivery Routing Ownership" }),
+    JSON.stringify({ id: "task-branch", thread_name: "Add a Delivery Routing Rollout Strategy" }),
   ].join("\n") + "\n");
 
   const first = refreshMemoryIndex({ cwd, sessionsRoot, titleIndexPath, indexDir });
@@ -119,8 +119,8 @@ try {
     path.join(sessionDir, "branch.jsonl"),
     turn(
       "turn-routing-new",
-      "delivery routing 结果如何排查？",
-      "保留命中规则和工作区 ID。",
+      "How should delivery-routing results be debugged?",
+      "Preserve the matching rule and workspace ID.",
       "2026-07-29T03:00:00.000Z",
     ).join("\n") + "\n",
   );

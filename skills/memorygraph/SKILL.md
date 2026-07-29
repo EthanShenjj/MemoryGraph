@@ -26,7 +26,7 @@ Find the original record first and treat it as evidence. Preserve its source anc
    - If the listing is capped, say that recall may be incomplete. Never claim completeness from a truncated task list.
 4. Perform record-level recall.
    - Rank literal matches in the preceding user prompt above matches found only in the AI answer or task title.
-   - Expand the user's intent conservatively. For example, `产品描述` may include `总结产品`, `产品定位`, `核心用户`, `核心功能`, `价值主张`, and `一句话总结`.
+   - Expand the user's intent conservatively. For example, `product description` may include `product summary`, `positioning`, `target users`, `core features`, `value proposition`, and `one-line summary`.
    - Prefer a task with several independently relevant turns over an isolated incidental keyword hit.
 5. Read only the strongest candidate tasks and likely neighbors when fallback discovery is used.
    - Pair a user message with the following assistant answer as one logical record.
@@ -97,7 +97,7 @@ record:<threadId>:<turnId>:<role>
 
 Every `record` detail node should include:
 
-- `title`: a concise label such as `原始回答：总结一下这款产品`.
+- `title`: a concise label such as `Original answer: summarize this product`.
 - `summary`: one sentence describing what the record contains.
 - `content`: the exact original message.
 - `kind`: `record`.
@@ -136,7 +136,7 @@ A memory object is a reviewable extraction from an original record, never a repl
 - Allowed statuses: `candidate`, `confirmed`, `corrected`, `superseded`, `rejected`.
 - Automatic extraction starts as `candidate`. Only explicit user confirmation may promote it to `confirmed`.
 - Every memory requires a `derived` edge to its source record and the same source task/Turn anchor.
-- Prefer high-precision extraction from explicit markers such as `最终结论`, `核心结论`, `产品结论`, `结论`, or `一句话总结`.
+- Prefer high-precision extraction from explicit markers such as `Final conclusion`, `Core conclusion`, `Product conclusion`, `Conclusion`, or `One-line summary`.
 - Do not extract generic prose, assistant speculation, or a keyword hit as durable memory.
 - When evidence later conflicts, preserve both provenance chains and mark the older memory `corrected` or `superseded`; do not silently overwrite history.
 - Use `review_memory_candidate` for explicit confirmation, rejection, correction, supersession, or reset to candidate.
@@ -205,14 +205,14 @@ When the user selects a record:
 1. Navigate using `source.threadId`.
 2. Use `source.turnId` and `source.excerpt` to locate the original turn.
 3. If exact turn scrolling is unavailable, open the task and show/copy the preserved excerpt instead of pretending a deep link exists.
-4. For “带着这条记录继续”, pass the verified content plus task and Turn anchors. State whether the payload is an original record or an unconfirmed memory.
+4. For "Continue with this record", pass the verified content plus task and Turn anchors. State whether the payload is an original record or an unconfirmed memory.
 
 ## Project Continuation
 
 Support high-frequency continuation prompts without pretending that summaries are source evidence:
 
-- `恢复上次进度`: identify the latest relevant tasks, confirmed decisions, current blocker, and next step.
-- `汇总最近决策`: prefer confirmed memories, then explicit conclusions in original records; list replaced or candidate decisions separately.
-- `整理未解决问题`: collect explicit open questions, TODOs, risks, and conflicting conclusions.
+- `Resume recent work`: identify the latest relevant tasks, confirmed decisions, current blocker, and next step.
+- `Summarize recent decisions`: prefer confirmed memories, then explicit conclusions in original records; list replaced or candidate decisions separately.
+- `Collect unresolved questions`: collect explicit open questions, TODOs, risks, and conflicting conclusions.
 
 Every returned item requires a source task ID and Turn ID when available. If evidence is insufficient, return the gap instead of generating a plausible project status.

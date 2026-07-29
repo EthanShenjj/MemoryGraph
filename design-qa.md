@@ -17,7 +17,7 @@ The implementation under review is:
 - Flat project navigation and low-noise canvas controls.
 - Larger 256 × 136 px task cards with cleaner status and match hierarchy.
 - Blue selected state, amber retrieval state, and neutral context state.
-- Dedicated “原始记录 / 候选记忆” inspector switch with counts.
+- Dedicated "Source records / Memory candidates" inspector switch with counts.
 - Search-first ranked record view with a one-click switch back to the DAG.
 - Visible match evidence, literal highlighting, and local correctness feedback.
 - Candidate-memory confirmation/rejection controls and project-continuation actions.
@@ -44,8 +44,8 @@ At the same viewport as the selected target:
 - Check task-card density, title wrapping, and edge-label collisions.
 - Verify the generated mark crop at 28 × 28 px.
 - Verify the selected-card outline and amber match state.
-- Switch between “原始记录” and “候选记忆” and inspect count/empty states.
-- Switch between “结果” and “图谱”; test result selection, highlighted evidence, and zero-result state.
+- Switch between "Source records" and "Memory candidates" and inspect count/empty states.
+- Switch between "Results" and "Graph"; test result selection, highlighted evidence, and zero-result state.
 - Exercise result feedback, candidate-memory review, and all four project-continuation actions.
 - Drag at least one node and confirm all connected edges remain anchored.
 - Drag the inspector divider to its minimum and maximum widths, verify text reflow, test arrow-key resizing, and double-click reset.
