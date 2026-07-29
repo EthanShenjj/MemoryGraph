@@ -1,6 +1,6 @@
 {
   "name": "memorygraph",
-  "version": "0.1.0+codex.20260729111852",
+  "version": "0.1.0+codex.20260729112859",
   "description": "Search a local-first, source-backed memory graph for one Codex project.",
   "author": {
     "name": "Local developer"
