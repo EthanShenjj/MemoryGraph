@@ -12,6 +12,7 @@ task relationships.
 - Verify every result with its task ID and Turn ID.
 - Separate task forks and continuations from content similarity.
 - Render Markdown and open the source task for context.
+- Defaults to Simplified Chinese, with a one-click English switch remembered locally.
 - Build an incremental local index without uploading conversations.
 - Review extracted memory candidates before confirming them.
 

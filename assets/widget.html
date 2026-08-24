@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MemoryGraph</title>
   <style>
     :root {
-      color-scheme: light dark;
+      color-scheme: light;
       --bg: #f8f9fb;
       --panel: #ffffff;
       --panel-2: #f7f8fa;
@@ -28,28 +28,6 @@
       --node-w: 256px;
       --node-h: 136px;
       --detail-width: 410px;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #17191d;
-        --panel: #202329;
-        --panel-2: #262a31;
-        --ink: #f3f4f6;
-        --muted: #a9afb9;
-        --faint: #7d838d;
-        --line: #363b44;
-        --line-strong: #4a505b;
-        --blue: #7ba1ff;
-        --blue-soft: #263554;
-        --green: #5bc69d;
-        --green-soft: #203d33;
-        --amber: #e9ad56;
-        --amber-soft: #49361f;
-        --pink: #e98ab7;
-        --pink-soft: #492b3c;
-        --shadow: 0 8px 26px rgba(0, 0, 0, 0.2);
-      }
     }
 
     * { box-sizing: border-box; }
@@ -1604,6 +1582,273 @@
       .detail-resizer { display: none; }
       .detail.open { transform: translateY(0); }
     }
+
+    /* Evidence archive visual system: navigation, retrieval, and source reading each
+       have a distinct surface so that provenance remains the visual priority. */
+    :root {
+      --bg: #eaf0f5;
+      --panel: #ffffff;
+      --panel-2: #f4f7fa;
+      --ink: #15243a;
+      --muted: #627189;
+      --faint: #8a98ab;
+      --line: #d9e1e9;
+      --line-strong: #bdc9d7;
+      --blue: #1976d2;
+      --blue-soft: #e4f2ff;
+      --green: #148d74;
+      --green-soft: #e4f6f0;
+      --amber: #c17020;
+      --amber-soft: #fff1df;
+      --pink: #b04b77;
+      --pink-soft: #fce9f1;
+      --shadow: 0 12px 28px rgba(22, 40, 63, 0.09);
+      --shadow-strong: 0 22px 44px rgba(22, 40, 63, 0.15);
+      --nav: #12233a;
+      --nav-2: #1a304c;
+      --nav-ink: #edf5ff;
+      --nav-muted: #9bb0c9;
+      --node-w: 276px;
+      --node-h: 148px;
+      --detail-width: 432px;
+    }
+
+    html, body {
+      background: var(--bg);
+      font-family: "IBM Plex Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    .app {
+      grid-template:
+        "header header header" 64px
+        "rail canvas detail" minmax(0, 1fr)
+        / 272px minmax(460px, 1fr) var(--detail-width);
+    }
+
+    .header {
+      grid-template-columns: 256px minmax(320px, 680px) minmax(300px, 1fr);
+      gap: 20px;
+      padding: 0 22px;
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom-color: #d8e2eb;
+      box-shadow: 0 1px 0 rgba(15, 32, 51, 0.03);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand { gap: 10px; }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border: 1px solid #cbd8e5;
+      border-radius: 10px;
+      background: #f4f9ff;
+      box-shadow: 0 4px 10px rgba(24, 70, 113, 0.12);
+    }
+    .brand-mark img { transform: scale(1.5); }
+    .brand h1 { font-size: 16px; letter-spacing: -0.02em; }
+    .brand p { font-size: 10px; letter-spacing: 0.01em; }
+
+    .search {
+      height: 40px;
+      padding: 0 13px;
+      border-color: #d4dfe9;
+      border-radius: 12px;
+      background: #f4f7fa;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+    .search:focus-within {
+      border-color: var(--blue);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.12);
+    }
+    .search span { color: var(--blue); font-size: 18px; }
+    .search input { font-size: 13px; }
+    .header-actions { gap: 6px; }
+    .header-metrics { gap: 0; margin-right: 6px; }
+    .metric { padding: 0 10px; font-size: 10px; }
+    .metric strong { color: var(--blue); }
+    .icon-button {
+      width: 36px;
+      height: 36px;
+      border-color: transparent;
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .icon-button:hover { border-color: #c8d7e6; color: var(--blue); background: #edf6ff; }
+    #languageButton { font-size: 11px; font-weight: 800; letter-spacing: 0.03em; }
+
+    .rail {
+      padding: 20px 14px 26px;
+      color: var(--nav-ink);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.035), transparent 34%),
+        var(--nav);
+      border-right: 0;
+    }
+    .section-label { margin: 5px 10px 10px; color: var(--nav-muted); font-size: 9px; letter-spacing: 0.12em; }
+    .filter-list { gap: 5px; margin-bottom: 24px; }
+    .filter {
+      min-height: 36px;
+      height: auto;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      color: #c3d2e2;
+      transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+    }
+    .filter:hover { color: #fff; background: rgba(255,255,255,0.075); }
+    .filter.active { color: #fff; background: linear-gradient(90deg, #1f75ba, #24649e); border-color: rgba(173, 220, 255, 0.22); box-shadow: 0 6px 16px rgba(0,0,0,0.16); }
+    .filter.project-row { min-height: 44px; color: #fff; background: rgba(255,255,255,0.075); font-weight: 720; }
+    .filter.project-row.active { background: linear-gradient(90deg, #1f75ba, #24649e); }
+    .filter.task-row { padding-left: 18px; }
+    .filter .count { color: var(--nav-muted); }
+    .filter.active .count { color: #d7efff; }
+    .folder-icon::before { background: var(--nav); }
+    .rail-group { margin-bottom: 18px; padding: 12px 0; border-color: rgba(174, 202, 231, 0.16); }
+    .rail-group + .rail-group { margin-top: -19px; }
+    .legend { gap: 10px; padding: 5px 10px; color: var(--nav-muted); font-size: 10px; }
+    .edge-sample { border-color: #6682a2; }
+    .stats { margin: 18px 2px 0; padding: 14px 10px 0; border-color: rgba(174, 202, 231, 0.18); color: var(--nav-muted); font-size: 10px; }
+    .stats strong { color: #f3f8ff; }
+
+    .canvas-shell {
+      background-color: #edf3f7;
+      background-image:
+        linear-gradient(rgba(164, 184, 202, 0.16) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(164, 184, 202, 0.16) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .canvas-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 44% 30%, rgba(255,255,255,0.88), transparent 46%);
+    }
+    .canvas-shell.results-mode { background: #eef3f7; }
+    .view-switcher, .layer-controls, .canvas-toolbar, .result-pill {
+      border-color: #c9d7e4;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 10px 22px rgba(36, 57, 80, 0.1);
+      backdrop-filter: blur(14px);
+    }
+    .view-switcher { left: 20px; top: 18px; padding: 4px; }
+    .view-button { min-width: 74px; height: 30px; border-radius: 8px; font-size: 11px; }
+    .view-button.active { color: #fff; background: linear-gradient(135deg, #2389db, #1762b0); box-shadow: 0 4px 10px rgba(21, 102, 182, 0.22); }
+    .layer-controls { left: 20px; top: 18px; padding: 4px; }
+    .layer-control { min-height: 30px; padding: 6px 10px; border-radius: 8px; font-size: 10px; }
+    .layer-control.active { color: var(--blue); background: #e7f3ff; }
+    .canvas-toolbar { right: 18px; bottom: 18px; padding: 4px; }
+    .canvas-toolbar .icon-button { width: 34px; height: 32px; }
+    .result-pill { left: 18px; bottom: 18px; padding: 8px 12px; color: #52657b; font-size: 10px; }
+
+    .result-view { inset: 62px 0 0; padding: 34px clamp(26px, 5vw, 72px) 58px; background: transparent; }
+    .result-view-inner { width: min(880px, 100%); }
+    .result-view-head { margin-bottom: 22px; }
+    .result-view-head h2 { font-size: 24px; letter-spacing: -0.035em; }
+    .result-view-head p { max-width: 590px; font-size: 12px; line-height: 1.7; }
+    .recall-actions { gap: 10px; margin-bottom: 22px; }
+    .recall-action {
+      min-height: 76px;
+      padding: 13px 14px;
+      border-color: #d8e2eb;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.88);
+      box-shadow: 0 5px 16px rgba(39, 60, 84, 0.045);
+      font-size: 12px;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+    .recall-action span { margin-top: 6px; font-size: 10px; line-height: 1.5; }
+    .recall-action:hover { border-color: #91c6ef; background: #fafdff; box-shadow: 0 12px 24px rgba(34, 103, 165, 0.1); transform: translateY(-2px); }
+    .result-list { gap: 10px; }
+    .result-card {
+      grid-template-columns: 38px minmax(0, 1fr) auto;
+      gap: 13px;
+      padding: 15px 16px;
+      border-color: #d7e2eb;
+      border-radius: 13px;
+      background: rgba(255,255,255,0.94);
+      box-shadow: 0 5px 16px rgba(35, 58, 84, 0.045);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+    .result-card:hover, .result-card.active { border-color: #8ac0eb; box-shadow: 0 14px 28px rgba(31, 93, 150, 0.12); transform: translateY(-2px); }
+    .result-card.active { background: linear-gradient(110deg, #fff, #f1f8ff); }
+    .result-rank { width: 30px; height: 30px; border-radius: 10px; color: #1762aa; background: #e0f0ff; font-size: 10px; }
+    .result-source { color: #5e7691; font-size: 10px; }
+    .result-card-title { font-size: 14px; letter-spacing: -0.01em; }
+    .result-excerpt { font-size: 11px; line-height: 1.65; }
+    .result-score { padding: 4px 7px; border-radius: 999px; font-size: 9px; }
+    mark { border-radius: 3px; background: #ffe6a9; }
+
+    .edge { stroke: #9dafc1; stroke-width: 1.65; }
+    .edge.membership { stroke: #93a8bc; }
+    .edge.fork { stroke: #7e64c9; }
+    .edge.continuation { stroke: #2585d4; }
+    .edge.shared-prefix { stroke: #1a9a7f; }
+    .edge-label { fill: #556a81; stroke: #edf3f7; font-size: 9px; }
+    .node {
+      padding: 15px 16px;
+      border: 1px solid #c7d4e0;
+      border-top: 4px solid var(--accent, #6c87a5);
+      border-radius: 15px;
+      background: rgba(255,255,255,0.96);
+      box-shadow: 0 10px 22px rgba(31, 55, 80, 0.09);
+    }
+    .node:hover { border-color: #8eabc6; box-shadow: 0 17px 30px rgba(31, 61, 91, 0.14); transform: translateY(-3px); }
+    .node.project-node { border-color: #75addf; border-top-color: #1976d2; background: linear-gradient(145deg, #f9fcff, #eaf5ff); }
+    .node.task-node { border-top-color: var(--accent, #597997); }
+    .node.has-record-match { border-color: #dfb97f; border-top-color: var(--amber); box-shadow: 0 10px 22px rgba(148, 92, 28, 0.12); }
+    .node.selected, .node.has-record-match.selected { border-color: #1f81d0; border-top-color: #1f81d0; background: #fff; box-shadow: 0 0 0 4px rgba(31, 129, 208, 0.14), 0 18px 34px rgba(26, 85, 138, 0.18); }
+    .node-head { margin-bottom: 10px; }
+    .kind { font-size: 9px; letter-spacing: 0.08em; }
+    .node-title { margin-bottom: 8px; font-size: 14px; letter-spacing: -0.015em; line-height: 1.42; }
+    .node-summary { font-size: 11px; line-height: 1.58; }
+    .node-related-count { left: 16px; bottom: 12px; border-radius: 999px; background: #f5f8fb; font-size: 8px; }
+    .node-match-rank { right: 16px; bottom: 13px; color: #6b8199; }
+    .status-dot.active { box-shadow: 0 0 0 3px #d8f2e9; }
+
+    .detail {
+      padding: 0 26px 36px;
+      background: #fffdf9;
+      border-left: 1px solid #d5dfe8;
+      box-shadow: -10px 0 26px rgba(35, 55, 80, 0.045);
+    }
+    .detail-resizer { top: 64px; right: calc(var(--detail-width) - 6px); }
+    .detail-switch { min-height: 66px; gap: 24px; margin: 0 -26px; padding: 0 26px; background: rgba(255,253,249,0.94); border-bottom-color: #dbe3ea; backdrop-filter: blur(12px); }
+    .detail-switch-button { font-size: 13px; }
+    .detail-kind { margin-top: 26px; color: #287abb; font-size: 10px; letter-spacing: 0.1em; }
+    .detail h2 { font-size: 24px; letter-spacing: -0.035em; }
+    .detail-summary { font-size: 13px; line-height: 1.75; }
+    .record-label { font-size: 10px; letter-spacing: 0.07em; }
+    .record-prompt, .record-content { border-color: #d8e1e8; border-radius: 10px; font-size: 13px; line-height: 1.8; }
+    .record-prompt { border-left-color: #2686d3; background: #f0f7fd; }
+    .record-content { background: #fff; }
+    .match-reason { border-radius: 0 10px 10px 0; background: #fff8ed; }
+    .evidence-panel { border-color: #edcc97; border-radius: 11px; }
+    .feedback-row, .memory-review, .graph-guide { border-color: #d8e1e8; border-radius: 11px; }
+    .content-tab { border-radius: 9px; }
+    .meta { border-color: #e0e6ec; }
+    .action { min-height: 42px; border-radius: 10px; }
+    .action.primary { border-color: #1764aa; background: linear-gradient(135deg, #268ad9, #1764aa); box-shadow: 0 8px 16px rgba(29, 111, 184, 0.2); }
+    .action.continue { border-color: #b8d9f4; }
+    .toast { border-radius: 12px; box-shadow: var(--shadow-strong); }
+
+    @media (max-width: 900px) {
+      .app { grid-template: "header header" 64px "canvas detail" minmax(0, 1fr) / minmax(340px, 1fr) var(--detail-width); }
+      .header { grid-template-columns: 190px minmax(240px, 1fr) auto; }
+    }
+
+    @media (max-width: 650px) {
+      .app { grid-template: "header" 112px "canvas" minmax(0, 1fr) / 1fr; }
+      .header { grid-template-columns: 1fr auto; grid-template-rows: 56px 48px; padding: 0 14px; }
+      .search { height: 38px; }
+      .result-view { inset: 58px 0 0; padding: 24px 14px 112px; }
+      .result-view-head h2 { font-size: 21px; }
+      .detail { left: 10px; right: 10px; bottom: 10px; padding-left: 18px; padding-right: 18px; border-radius: 14px; }
+      .detail-switch { margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; }
+    }
   </style>
 </head>
 <body>
@@ -1613,39 +1858,40 @@
         <div class="brand-mark"><img src="./memorygraph-mark.png" alt="" /></div>
         <div class="brand-copy">
           <h1 id="graphTitle">MemoryGraph</h1>
-          <p id="graphScope">Current project</p>
+          <p id="graphScope">当前项目</p>
         </div>
       </div>
       <label class="search">
         <span aria-hidden="true">⌕</span>
         <input id="searchInput" type="search" autocomplete="off"
-          placeholder="Search plans, decisions, files, or keywords" aria-label="Search conversations" />
+          placeholder="搜索计划、决策、文件或关键词" aria-label="搜索对话" />
       </label>
       <div class="header-actions">
         <div class="header-metrics" id="headerMetrics"></div>
-        <button class="icon-button" id="refreshButton" title="Ask Codex to refresh the graph" aria-label="Refresh">↻</button>
-        <button class="icon-button" id="fullscreenButton" title="Fullscreen" aria-label="Fullscreen">⛶</button>
+        <button class="icon-button" id="languageButton" title="切换为英文" aria-label="切换界面语言">EN</button>
+        <button class="icon-button" id="refreshButton" title="请 Codex 刷新图谱" aria-label="刷新">↻</button>
+        <button class="icon-button" id="fullscreenButton" title="全屏" aria-label="全屏">⛶</button>
       </div>
     </header>
 
     <aside class="rail">
-      <div class="section-label">Project structure</div>
+      <div class="section-label" data-i18n="projectStructure">项目结构</div>
       <div class="filter-list" id="clusterFilters"></div>
 
       <div class="rail-group">
-        <div class="section-label">Task structure</div>
+        <div class="section-label" data-i18n="taskStructure">任务结构</div>
         <div class="legend">
-          <div class="legend-row"><span class="edge-sample"></span><span>Belongs to project</span></div>
-          <div class="legend-row"><span class="edge-sample" style="border-color:#7950c8"></span><span>Explicit fork</span></div>
-          <div class="legend-row"><span class="edge-sample inferred" style="border-color:var(--blue)"></span><span>Continuation</span></div>
-          <div class="legend-row"><span class="edge-sample inferred" style="border-color:var(--green)"></span><span>Shared conversation prefix</span></div>
+          <div class="legend-row"><span class="edge-sample"></span><span data-i18n="belongsToProject">属于项目</span></div>
+          <div class="legend-row"><span class="edge-sample" style="border-color:#7950c8"></span><span data-i18n="explicitFork">明确分支</span></div>
+          <div class="legend-row"><span class="edge-sample inferred" style="border-color:var(--blue)"></span><span data-i18n="continuation">延续任务</span></div>
+          <div class="legend-row"><span class="edge-sample inferred" style="border-color:var(--green)"></span><span data-i18n="sharedPrefix">共享对话前缀</span></div>
         </div>
       </div>
 
       <div class="rail-group">
-        <div class="section-label">Content relationships</div>
+        <div class="section-label" data-i18n="contentRelationships">内容关联</div>
         <div class="legend">
-          <div class="legend-row"><span class="edge-sample related"></span><span>Similar content; no sequence implied</span></div>
+          <div class="legend-row"><span class="edge-sample related"></span><span data-i18n="similarContent">内容相近，不代表先后关系</span></div>
         </div>
       </div>
 
@@ -1653,30 +1899,30 @@
     </aside>
 
     <main class="canvas-shell" id="canvas">
-      <div class="view-switcher" id="viewSwitcher" aria-label="Main view">
-        <button class="view-button active" data-canvas-mode="results" aria-pressed="true">Results</button>
-        <button class="view-button" data-canvas-mode="graph" aria-pressed="false">Graph</button>
+      <div class="view-switcher" id="viewSwitcher" aria-label="主视图">
+        <button class="view-button active" data-canvas-mode="results" aria-pressed="true" data-i18n="results">结果</button>
+        <button class="view-button" data-canvas-mode="graph" aria-pressed="false" data-i18n="graph">图谱</button>
       </div>
       <section class="result-view" id="resultView">
         <div class="result-view-inner">
           <div class="result-view-head">
             <div>
-              <h2 id="resultViewTitle">Source records found</h2>
-              <p id="resultViewSummary">Verify source records first, then use the graph to understand task relationships.</p>
+              <h2 id="resultViewTitle">已找到来源记录</h2>
+              <p id="resultViewSummary">先核验来源记录，再通过图谱了解任务关系。</p>
             </div>
           </div>
-          <div class="recall-actions" aria-label="Project continuation">
+          <div class="recall-actions" aria-label="继续项目工作">
             <button class="recall-action" data-recall-action="resume">
-              Resume recent work
-              <span>Find recent tasks, conclusions, and next steps</span>
+              继续最近工作
+              <span>查找近期任务、结论和下一步</span>
             </button>
             <button class="recall-action" data-recall-action="decisions">
-              Summarize recent decisions
-              <span>Return only source-backed project decisions</span>
+              汇总近期决策
+              <span>仅返回有来源依据的项目决策</span>
             </button>
             <button class="recall-action" data-recall-action="open-questions">
-              Collect unresolved questions
-              <span>Find items that still need confirmation</span>
+              收集未解决问题
+              <span>查找仍待确认的事项</span>
             </button>
           </div>
           <div class="result-list" id="resultList"></div>
@@ -1693,9 +1939,9 @@
         </svg>
         <div id="nodes"></div>
       </div>
-      <div class="layer-controls" aria-label="Graph layers">
-        <button class="layer-control active" data-layer="task" aria-pressed="true">Task structure</button>
-        <button class="layer-control active" data-layer="content" aria-pressed="true">Content relationships</button>
+      <div class="layer-controls" aria-label="图谱图层">
+        <button class="layer-control active" data-layer="task" aria-pressed="true" data-i18n="taskStructure">任务结构</button>
+        <button class="layer-control active" data-layer="content" aria-pressed="true" data-i18n="contentRelationships">内容关联</button>
       </div>
       <div class="result-pill" id="resultPill"></div>
       <div class="canvas-toolbar">
@@ -1706,22 +1952,22 @@
     </main>
 
     <button class="detail-resizer" id="detailResizer" type="button"
-      role="separator" aria-orientation="vertical" aria-label="Resize the right inspector"
+      role="separator" aria-orientation="vertical" aria-label="调整右侧检查器宽度"
       aria-valuemin="320" aria-valuemax="720" aria-valuenow="410"
-      title="Drag to resize the inspector; double-click to reset"></button>
+      title="拖动调整检查器宽度；双击重置"></button>
 
     <aside class="detail" id="detail">
-      <div class="empty-detail" id="emptyDetail"><div>Select a task to view its source records, memory candidates, evidence, and context.</div></div>
+      <div class="empty-detail" id="emptyDetail"><div>选择任务以查看其来源记录、记忆候选、证据和上下文。</div></div>
       <div class="detail-content" id="detailContent" hidden>
         <div class="detail-switch" id="detailSwitch">
           <button class="detail-switch-button active" data-content-kind="record" aria-pressed="true">
-            Source records <span class="detail-switch-count" id="recordTabCount">0</span>
+            <span data-i18n="sourceRecords">来源记录</span> <span class="detail-switch-count" id="recordTabCount">0</span>
           </button>
           <button class="detail-switch-button" data-content-kind="memory" aria-pressed="false">
-            Memory candidates <span class="detail-switch-count" id="memoryTabCount">0</span>
+            <span data-i18n="memoryCandidates">记忆候选</span> <span class="detail-switch-count" id="memoryTabCount">0</span>
           </button>
           <button class="detail-switch-button" data-content-kind="log" aria-pressed="false">
-            Logs
+            <span data-i18n="logs">日志</span>
           </button>
         </div>
         <div class="detail-kind" id="detailKind"></div>
@@ -1730,104 +1976,104 @@
         <div class="match-reason" id="matchReason" hidden></div>
         <section class="evidence-panel" id="evidencePanel" hidden>
           <div class="evidence-head">
-            <span>Match evidence</span>
+            <span data-i18n="matchEvidence">匹配证据</span>
             <span class="evidence-location" id="evidenceLocation"></span>
           </div>
           <div class="evidence-text" id="evidenceText"></div>
         </section>
         <section class="feedback-row" id="feedbackRow" hidden>
-          <div class="feedback-title">Is this the correct record? Feedback stays local.</div>
+          <div class="feedback-title" data-i18n="correctRecordQuestion">这是正确的记录吗？反馈仅保存在本机。</div>
           <div class="feedback-actions">
-            <button class="feedback-button correct" data-feedback="correct">Correct</button>
-            <button class="feedback-button incorrect" data-feedback="incorrect">Incorrect</button>
+            <button class="feedback-button correct" data-feedback="correct" data-i18n="correct">正确</button>
+            <button class="feedback-button incorrect" data-feedback="incorrect" data-i18n="incorrect">不正确</button>
           </div>
         </section>
         <section class="memory-review" id="memoryReview" hidden>
-          <div class="memory-review-title">Review memory candidate</div>
+          <div class="memory-review-title" data-i18n="reviewMemory">审核记忆候选</div>
           <div class="memory-review-actions">
-            <button class="memory-review-button confirmed" data-memory-review="confirmed">Confirm memory</button>
-            <button class="memory-review-button rejected" data-memory-review="rejected">Reject</button>
-            <button class="memory-review-button candidate" data-memory-review="candidate">Reset to candidate</button>
+            <button class="memory-review-button confirmed" data-memory-review="confirmed" data-i18n="confirmMemory">确认记忆</button>
+            <button class="memory-review-button rejected" data-memory-review="rejected" data-i18n="reject">拒绝</button>
+            <button class="memory-review-button candidate" data-memory-review="candidate" data-i18n="resetCandidate">重置为候选</button>
           </div>
           <div class="memory-review-state" id="memoryReviewState"></div>
         </section>
         <div class="tags" id="detailTags"></div>
         <details class="graph-guide" id="graphGuide">
-          <summary>Relationship guide</summary>
+          <summary data-i18n="relationshipGuide">关系说明</summary>
           <div class="guide-body">
-            <div class="record-label">Task structure</div>
+            <div class="record-label" data-i18n="taskStructure">任务结构</div>
             <div class="guide-row">
               <span class="guide-node" aria-hidden="true"></span>
-              <span><strong>Drag nodes:</strong> Adjust the layout while connected edges update live.</span>
+              <span><strong>拖动节点：</strong>调整布局时，连接边会同步更新。</span>
             </div>
             <div class="guide-row">
               <span class="guide-node context" aria-hidden="true"></span>
-              <span><strong>Context task:</strong> Provides relationship context but is not a direct match.</span>
+              <span><strong>上下文任务：</strong>提供关系背景，但不是直接匹配。</span>
             </div>
             <div class="guide-row">
               <span class="guide-line" aria-hidden="true"></span>
-              <span><strong>Gray solid line:</strong> The project contains this task.</span>
+              <span><strong>灰色实线：</strong>项目包含该任务。</span>
             </div>
             <div class="guide-row">
               <span class="guide-line fork" aria-hidden="true"></span>
-              <span><strong>Purple solid line:</strong> An explicit fork confirmed by metadata.</span>
+              <span><strong>紫色实线：</strong>由元数据确认的明确分支。</span>
             </div>
             <div class="guide-row">
               <span class="guide-line continuation" aria-hidden="true"></span>
-              <span><strong>Blue dashed line:</strong> Evidence shows that the later task continues the discussion.</span>
+              <span><strong>蓝色虚线：</strong>证据显示后续任务延续了该讨论。</span>
             </div>
             <div class="guide-row">
               <span class="guide-line shared-prefix" aria-hidden="true"></span>
-              <span><strong>Green dashed line:</strong> The tasks share a conversation prefix but remain peers.</span>
+              <span><strong>绿色虚线：</strong>任务共享对话前缀，但仍处于同一层级。</span>
             </div>
-            <div class="record-label">Content relationships</div>
+            <div class="record-label" data-i18n="contentRelationships">内容关联</div>
             <div class="guide-row">
               <span class="guide-line related" aria-hidden="true"></span>
-              <span><strong>Gray dotted line:</strong> Content is similar; no sequence, inheritance, or fork is implied.</span>
+              <span><strong>灰色点线：</strong>内容相近，不代表顺序、继承或分支关系。</span>
             </div>
             <div class="guide-row">
               <span class="guide-node" aria-hidden="true"></span>
-              <span><strong>Records and memories:</strong> Source records are evidence; memory candidates are derived summaries.</span>
+              <span><strong>记录与记忆：</strong>来源记录是证据；记忆候选是派生摘要。</span>
             </div>
           </div>
         </details>
         <section class="content-section" id="contentSection" hidden>
-          <div class="record-label" id="contentSectionLabel">Source records in this task</div>
+          <div class="record-label" id="contentSectionLabel">该任务的来源记录</div>
           <div class="content-tabs" id="contentTabs"></div>
         </section>
         <div class="content-empty" id="contentEmpty" hidden></div>
         <section class="record-section" id="recordSection" hidden>
           <div class="record-block" id="promptBlock" hidden>
-            <div class="record-label">Previous user message</div>
+            <div class="record-label" data-i18n="previousUserMessage">上一条用户消息</div>
             <div class="record-prompt" id="sourcePrompt"></div>
           </div>
           <div class="record-block" id="contentBlock" hidden>
-            <div class="record-label" id="contentBlockLabel">Original answer</div>
+            <div class="record-label" id="contentBlockLabel">原始回答</div>
             <div class="record-content" id="recordContent"></div>
           </div>
         </section>
         <div class="meta" id="logSection" hidden>
-          <div class="meta-row"><span>Status</span><span class="value" id="detailStatus"></span></div>
-          <div class="meta-row"><span>Recorded at</span><span class="value" id="detailTime"></span></div>
-          <div class="meta-row" id="sourceTitleRow"><span>Source task</span><span class="value" id="sourceTitle"></span></div>
-          <div class="meta-row" id="sourceThreadRow"><span>Task ID</span><span class="value" id="sourceThreadId"></span></div>
-          <div class="meta-row" id="sourceTurnRow"><span>Turn ID</span><span class="value" id="sourceTurnId"></span></div>
-          <div class="meta-row" id="sourceRoleRow"><span>Message role</span><span class="value" id="sourceRole"></span></div>
-          <div class="meta-row" id="duplicateRow"><span>Log deduplication</span><span class="value" id="duplicateCount"></span></div>
-          <div class="meta-row" id="copiesRow"><span>Source copies</span><span class="value" id="sourceCopies"></span></div>
-          <div class="meta-row" id="memoryTypeRow"><span>Memory type</span><span class="value" id="memoryType"></span></div>
-          <div class="meta-row" id="memoryStatusRow"><span>Memory status</span><span class="value" id="memoryStatus"></span></div>
-          <div class="meta-row" id="evidenceTypeRow"><span>Extraction evidence</span><span class="value" id="evidenceType"></span></div>
-          <div class="meta-row" id="memoryConfidenceRow"><span>Extraction confidence</span><span class="value" id="memoryConfidence"></span></div>
-          <div class="meta-row"><span>Node ID</span><span class="value" id="detailId"></span></div>
-          <div class="meta-row"><span>Working directory</span><span class="value" id="detailCwd"></span></div>
+          <div class="meta-row"><span data-i18n="status">状态</span><span class="value" id="detailStatus"></span></div>
+          <div class="meta-row"><span data-i18n="recordedAt">记录时间</span><span class="value" id="detailTime"></span></div>
+          <div class="meta-row" id="sourceTitleRow"><span data-i18n="sourceTask">来源任务</span><span class="value" id="sourceTitle"></span></div>
+          <div class="meta-row" id="sourceThreadRow"><span data-i18n="taskId">任务 ID</span><span class="value" id="sourceThreadId"></span></div>
+          <div class="meta-row" id="sourceTurnRow"><span data-i18n="turnId">轮次 ID</span><span class="value" id="sourceTurnId"></span></div>
+          <div class="meta-row" id="sourceRoleRow"><span data-i18n="messageRole">消息角色</span><span class="value" id="sourceRole"></span></div>
+          <div class="meta-row" id="duplicateRow"><span data-i18n="logDeduplication">日志去重</span><span class="value" id="duplicateCount"></span></div>
+          <div class="meta-row" id="copiesRow"><span data-i18n="sourceCopies">来源副本</span><span class="value" id="sourceCopies"></span></div>
+          <div class="meta-row" id="memoryTypeRow"><span data-i18n="memoryType">记忆类型</span><span class="value" id="memoryType"></span></div>
+          <div class="meta-row" id="memoryStatusRow"><span data-i18n="memoryStatus">记忆状态</span><span class="value" id="memoryStatus"></span></div>
+          <div class="meta-row" id="evidenceTypeRow"><span data-i18n="extractionEvidence">提取证据</span><span class="value" id="evidenceType"></span></div>
+          <div class="meta-row" id="memoryConfidenceRow"><span data-i18n="extractionConfidence">提取置信度</span><span class="value" id="memoryConfidence"></span></div>
+          <div class="meta-row"><span data-i18n="nodeId">节点 ID</span><span class="value" id="detailId"></span></div>
+          <div class="meta-row"><span data-i18n="workingDirectory">工作目录</span><span class="value" id="detailCwd"></span></div>
         </div>
         <div class="detail-actions">
-          <button class="action primary" id="openTask">Open source task</button>
-          <button class="action continue" id="continueWithRecord">Continue with this record</button>
-          <button class="action" id="copyRecord">Copy original answer</button>
-          <button class="action" id="inspectTask">Inspect record context</button>
-          <button class="action" id="copyTaskTitle">Copy task title</button>
+          <button class="action primary" id="openTask">打开来源任务</button>
+          <button class="action continue" id="continueWithRecord">基于此记录继续</button>
+          <button class="action" id="copyRecord">复制原始回答</button>
+          <button class="action" id="inspectTask">查看记录上下文</button>
+          <button class="action" id="copyTaskTitle">复制任务标题</button>
         </div>
       </div>
     </aside>
@@ -1837,6 +2083,97 @@
   <script>
     (() => {
       "use strict";
+
+      const translations = {
+        "zh-CN": {
+          projectStructure: "项目结构", taskStructure: "任务结构", contentRelationships: "内容关联",
+          belongsToProject: "属于项目", explicitFork: "明确分支", continuation: "延续任务",
+          sharedPrefix: "共享对话前缀", similarContent: "内容相近，不代表先后关系",
+          results: "结果", graph: "图谱", sourceRecords: "来源记录", memoryCandidates: "记忆候选",
+          logs: "日志", matchEvidence: "匹配证据", correctRecordQuestion: "这是正确的记录吗？反馈仅保存在本机。",
+          correct: "正确", incorrect: "不正确", reviewMemory: "审核记忆候选", confirmMemory: "确认记忆",
+          reject: "拒绝", resetCandidate: "重置为候选", relationshipGuide: "关系说明",
+          previousUserMessage: "上一条用户消息", status: "状态", recordedAt: "记录时间", sourceTask: "来源任务",
+          messageRole: "消息角色", logDeduplication: "日志去重", sourceCopies: "来源副本", memoryType: "记忆类型",
+          memoryStatus: "记忆状态", extractionEvidence: "提取证据", extractionConfidence: "提取置信度",
+          nodeId: "节点 ID", taskId: "任务 ID", turnId: "轮次 ID", workingDirectory: "工作目录", currentProject: "当前项目", searchPlaceholder: "搜索计划、决策、文件或关键词",
+          searchConversations: "搜索对话", switchToEnglish: "切换为英文", switchLanguage: "切换界面语言", refreshGraph: "请 Codex 刷新图谱",
+          refresh: "刷新", fullscreen: "全屏", zoomOut: "缩小", fitCanvas: "适应画布", zoomIn: "放大",
+          sourceRecordsFor: "“{query}”的来源记录", projectSourceRecords: "项目来源记录",
+          recordsFound: "{count} 条记录 · 优先显示精确匹配和用户确认的结果",
+          noTrustworthyRecords: "未找到可信的来源记录。请换一个关键词，或明确返回未找到结果。",
+          noVerifiableRecords: "未找到可验证的来源记录。<br>MemoryGraph 不会为了填满结果列表而编造看似合理的答案。",
+          confirmed: "已确认", excluded: "已排除", unknownSourceTask: "未知来源任务", selected: "已选择", context: "上下文",
+          noSummary: "暂无摘要", matchedRecords: "匹配 {count} 条记录", noDirectMatch: "无直接匹配", relatedMessages: "与当前搜索相关的 {count} 条消息", top: "前 {rank}",
+          project: "项目", task: "任务", decision: "决策", artifact: "产物", milestone: "里程碑",
+          exactMatch: "精确匹配", semanticMatch: "语义匹配", user: "用户", ai: "AI", system: "系统",
+          fact: "事实", requirement: "需求", openQuestion: "开放问题", plan: "计划", definition: "定义", insight: "洞见",
+          candidate: "候选（待审核）", corrected: "已修正", superseded: "已替代", rejected: "已拒绝",
+          explicitStatement: "来源回答中的明确陈述", modelInference: "模型推断", createdManually: "由用户手动创建",
+          originalAnswer: "原始回答", sourceTaskTitle: "来源任务标题", match: "匹配", semanticEvidence: "语义证据", sourceExcerpt: "来源摘录", needsVerification: "待核验",
+          localIndex: "本地索引", incrementalRefresh: "增量刷新", fullBuild: "完整构建", tasks: "任务", records: "记录", memories: "记忆",
+          projectMemoryCandidates: "项目记忆候选", taskMemoryCandidates: "任务记忆候选", projectSourceRecordLabel: "项目来源记录", taskSourceRecordLabel: "任务来源记录",
+          noMemoryCandidates: "{scope}暂无记忆候选。只有来源回答中存在“结论”“最终结论”或“一句话总结”等明确标记时，才会提取候选。",
+          noSourceRecords: "{scope}没有可显示的来源记录。请刷新本地索引，或选择另一个有搜索匹配的任务。",
+          derivedMemory: "记忆候选（由下方来源记录派生）", logCopies: "{count} 份日志副本已合并为一条记录", currentStatus: "当前状态：{status}",
+          inspectorReset: "检查器宽度已重置", keepOneLayer: "请至少保留一个关系图层", openedSourceTask: "正在打开来源任务", copiedTaskTitle: "任务标题已复制；可粘贴到 Codex 搜索", copiedMemory: "已复制记忆候选", copiedAnswer: "已复制原始回答", clipboardUnavailable: "此预览中无法访问剪贴板",
+          correctRecordSaved: "已确认为正确记录", incorrectRecordSaved: "已标记为不正确结果", memoryConfirmed: "记忆候选已确认", memoryRejected: "记忆候选已拒绝", memoryReset: "已重置为记忆候选",
+          refreshRequested: "已请求 Codex 增量刷新", refreshFallback: "请在对话中输入“刷新 MemoryGraph”", continuationRequested: "已请求 Codex 恢复项目上下文", continuationUnavailable: "无法直接发送继续请求",
+          persistenceUnavailable: "本地保存暂时不可用：{error}", sendFailed: "发送失败：{error}", openFailed: "无法打开来源任务：{error}",
+          emptyDetail: "选择任务以查看其来源记录、记忆候选、证据和上下文。", openSourceTask: "打开来源任务", continueWithRecord: "基于此记录继续",
+          copyOriginalAnswer: "复制原始回答", inspectContext: "查看记录上下文", copyTaskTitle: "复制任务标题",
+          resumeRecent: "继续最近工作", resumeRecentHint: "查找近期任务、结论和下一步", summarizeDecisions: "汇总近期决策", summarizeDecisionsHint: "仅返回有来源依据的项目决策",
+          collectQuestions: "收集未解决问题", collectQuestionsHint: "查找仍待确认的事项"
+        },
+        en: {
+          projectStructure: "Project structure", taskStructure: "Task structure", contentRelationships: "Content relationships",
+          belongsToProject: "Belongs to project", explicitFork: "Explicit fork", continuation: "Continuation",
+          sharedPrefix: "Shared conversation prefix", similarContent: "Similar content; no sequence implied",
+          results: "Results", graph: "Graph", sourceRecords: "Source records", memoryCandidates: "Memory candidates",
+          logs: "Logs", matchEvidence: "Match evidence", correctRecordQuestion: "Is this the correct record? Feedback stays local.",
+          correct: "Correct", incorrect: "Incorrect", reviewMemory: "Review memory candidate", confirmMemory: "Confirm memory",
+          reject: "Reject", resetCandidate: "Reset to candidate", relationshipGuide: "Relationship guide",
+          previousUserMessage: "Previous user message", status: "Status", recordedAt: "Recorded at", sourceTask: "Source task",
+          messageRole: "Message role", logDeduplication: "Log deduplication", sourceCopies: "Source copies", memoryType: "Memory type",
+          memoryStatus: "Memory status", extractionEvidence: "Extraction evidence", extractionConfidence: "Extraction confidence",
+          nodeId: "Node ID", taskId: "Task ID", turnId: "Turn ID", workingDirectory: "Working directory", currentProject: "Current project", searchPlaceholder: "Search plans, decisions, files, or keywords",
+          searchConversations: "Search conversations", switchToEnglish: "Switch to English", switchLanguage: "Switch interface language", refreshGraph: "Ask Codex to refresh the graph",
+          refresh: "Refresh", fullscreen: "Fullscreen", zoomOut: "Zoom out", fitCanvas: "Fit to canvas", zoomIn: "Zoom in",
+          sourceRecordsFor: "Source records for “{query}”", projectSourceRecords: "Project source records",
+          recordsFound: "{count} records · exact matches and user-confirmed results first",
+          noTrustworthyRecords: "No trustworthy source records were found. Try another keyword or return a clear not-found result.",
+          noVerifiableRecords: "No verifiable source records were found.<br>MemoryGraph will not invent a plausible answer just to fill the result list.",
+          confirmed: "Confirmed", excluded: "Excluded", unknownSourceTask: "Unknown source task", selected: "Selected", context: "Context",
+          noSummary: "No summary", matchedRecords: "Matched {count} records", noDirectMatch: "No direct match", relatedMessages: "{count} messages related to the current search", top: "Top {rank}",
+          project: "Project", task: "Task", decision: "Decision", artifact: "Artifact", milestone: "Milestone",
+          exactMatch: "Exact match", semanticMatch: "Semantic match", user: "User", ai: "AI", system: "System",
+          fact: "Fact", requirement: "Requirement", openQuestion: "Open question", plan: "Plan", definition: "Definition", insight: "Insight",
+          candidate: "Candidate (needs review)", corrected: "Corrected", superseded: "Superseded", rejected: "Rejected",
+          explicitStatement: "Explicit statement in source answer", modelInference: "Model inference", createdManually: "Created manually by user",
+          originalAnswer: "Original answer", sourceTaskTitle: "Source task title", match: "Match", semanticEvidence: "Semantic evidence", sourceExcerpt: "Source excerpt", needsVerification: "Needs verification",
+          localIndex: "Local index", incrementalRefresh: "Incremental refresh", fullBuild: "Full build", tasks: "tasks", records: "records", memories: "memories",
+          projectMemoryCandidates: "Project memory candidates", taskMemoryCandidates: "Task memory candidates", projectSourceRecordLabel: "Project source records", taskSourceRecordLabel: "Task source records",
+          noMemoryCandidates: "{scope} has no memory candidates yet. Candidates are extracted only from source answers with explicit markers such as “Conclusion,” “Final conclusion,” or “One-line summary.”",
+          noSourceRecords: "{scope} has no source records to display. Refresh the local index or select another task with a search match.",
+          derivedMemory: "Memory candidate (derived from the source record below)", logCopies: "{count} log copies merged into one record", currentStatus: "Current status: {status}",
+          inspectorReset: "Inspector width reset", keepOneLayer: "Keep at least one relationship layer", openedSourceTask: "Opening source task", copiedTaskTitle: "Task title copied; paste it into Codex search", copiedMemory: "Memory candidate copied", copiedAnswer: "Original answer copied", clipboardUnavailable: "Clipboard access is unavailable in this preview",
+          correctRecordSaved: "Confirmed as the correct record", incorrectRecordSaved: "Marked as an incorrect result", memoryConfirmed: "Memory candidate confirmed", memoryRejected: "Memory candidate rejected", memoryReset: "Reset to memory candidate",
+          refreshRequested: "Asked Codex for an incremental refresh", refreshFallback: "Type “Refresh MemoryGraph” in the conversation", continuationRequested: "Asked Codex to restore project context", continuationUnavailable: "Could not send the continuation request directly",
+          persistenceUnavailable: "Local persistence is temporarily unavailable: {error}", sendFailed: "Could not send: {error}", openFailed: "Could not open the source task: {error}",
+          emptyDetail: "Select a task to view its source records, memory candidates, evidence, and context.", openSourceTask: "Open source task", continueWithRecord: "Continue with this record",
+          copyOriginalAnswer: "Copy original answer", inspectContext: "Inspect record context", copyTaskTitle: "Copy task title",
+          resumeRecent: "Resume recent work", resumeRecentHint: "Find recent tasks, conclusions, and next steps", summarizeDecisions: "Summarize recent decisions", summarizeDecisionsHint: "Return only source-backed project decisions",
+          collectQuestions: "Collect unresolved questions", collectQuestionsHint: "Find items that still need confirmation"
+        }
+      };
+      const LANGUAGE_KEY = "memorygraph-language:v1";
+      function storedLocale() {
+        try { return localStorage.getItem(LANGUAGE_KEY) === "en" ? "en" : "zh-CN"; } catch { return "zh-CN"; }
+      }
+      function t(key, values = {}) {
+        const template = translations[state?.locale || "zh-CN"]?.[key] || translations["zh-CN"][key] || key;
+        return template.replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ""));
+      }
 
       const demoGraph = {
         version: 1,
@@ -1989,46 +2326,23 @@
         ["#39757a", "#e3f3f2"]
       ];
 
-      const kindLabels = {
-        project: "Project",
-        record: "Source records",
-        memory: "Memory candidates",
-        thread: "Task",
-        decision: "Decision",
-        artifact: "Artifact",
-        milestone: "Milestone"
-      };
-      const matchLabels = {
-        exact: "Exact match",
-        semantic: "Semantic match",
-        context: "Context"
-      };
-      const roleLabels = {
-        user: "User",
-        assistant: "AI",
-        system: "System"
-      };
-      const memoryTypeLabels = {
-        decision: "Decision",
-        fact: "Fact",
-        requirement: "Requirement",
-        "open-question": "Open question",
-        plan: "Plan",
-        definition: "Definition",
-        insight: "Insight"
-      };
-      const memoryStatusLabels = {
-        candidate: "Candidate (needs review)",
-        confirmed: "Confirmed",
-        corrected: "Corrected",
-        superseded: "Superseded",
-        rejected: "Rejected"
-      };
-      const evidenceTypeLabels = {
-        "explicit-statement": "Explicit statement in source answer",
-        inferred: "Model inference",
-        manual: "Created manually by user"
-      };
+      const kindLabels = () => ({
+        project: t("project"), record: t("sourceRecords"), memory: t("memoryCandidates"),
+        thread: t("task"), decision: t("decision"), artifact: t("artifact"), milestone: t("milestone")
+      });
+      const matchLabels = () => ({ exact: t("exactMatch"), semantic: t("semanticMatch"), context: t("context") });
+      const roleLabels = () => ({ user: t("user"), assistant: t("ai"), system: t("system") });
+      const memoryTypeLabels = () => ({
+        decision: t("decision"), fact: t("fact"), requirement: t("requirement"),
+        "open-question": t("openQuestion"), plan: t("plan"), definition: t("definition"), insight: t("insight")
+      });
+      const memoryStatusLabels = () => ({
+        candidate: t("candidate"), confirmed: t("confirmed"), corrected: t("corrected"),
+        superseded: t("superseded"), rejected: t("rejected")
+      });
+      const evidenceTypeLabels = () => ({
+        "explicit-statement": t("explicitStatement"), inferred: t("modelInference"), manual: t("createdManually")
+      });
       const NODE_WIDTH = 256;
       const NODE_HEIGHT = 136;
 
@@ -2047,7 +2361,8 @@
         detailWidth: 410,
         detailResize: null,
         suppressClickId: null,
-        visibleLayers: new Set(["task", "content"])
+        visibleLayers: new Set(["task", "content"]),
+        locale: storedLocale()
       };
 
       const el = (id) => document.getElementById(id);
@@ -2103,6 +2418,70 @@
           saved = DETAIL_WIDTH_DEFAULT;
         }
         applyDetailWidth(saved);
+      }
+
+      function applyLocale() {
+        const isEnglish = state.locale === "en";
+        document.documentElement.lang = isEnglish ? "en" : "zh-CN";
+        document.querySelectorAll("[data-i18n]").forEach((element) => {
+          element.textContent = t(element.dataset.i18n);
+        });
+        el("searchInput").placeholder = t("searchPlaceholder");
+        el("searchInput").setAttribute("aria-label", t("searchConversations"));
+        el("languageButton").textContent = isEnglish ? "中" : "EN";
+        el("languageButton").title = isEnglish ? "切换为中文" : t("switchToEnglish");
+        el("languageButton").setAttribute("aria-label", t("switchLanguage"));
+        el("refreshButton").title = t("refreshGraph");
+        el("refreshButton").setAttribute("aria-label", t("refresh"));
+        el("fullscreenButton").title = t("fullscreen");
+        el("fullscreenButton").setAttribute("aria-label", t("fullscreen"));
+        el("zoomOut").title = t("zoomOut");
+        el("zoomOut").setAttribute("aria-label", t("zoomOut"));
+        el("fitView").title = t("fitCanvas");
+        el("fitView").setAttribute("aria-label", t("fitCanvas"));
+        el("zoomIn").title = t("zoomIn");
+        el("zoomIn").setAttribute("aria-label", t("zoomIn"));
+        detailResizer.setAttribute("aria-label", isEnglish ? "Resize the right inspector" : "调整右侧检查器宽度");
+        detailResizer.title = isEnglish ? "Drag to resize the inspector; double-click to reset" : "拖动调整检查器宽度；双击重置";
+        el("emptyDetail").firstElementChild.textContent = t("emptyDetail");
+        el("openTask").textContent = t("openSourceTask");
+        el("continueWithRecord").textContent = t("continueWithRecord");
+        el("inspectTask").textContent = t("inspectContext");
+        el("copyTaskTitle").textContent = t("copyTaskTitle");
+        const recall = {
+          resume: ["resumeRecent", "resumeRecentHint"],
+          decisions: ["summarizeDecisions", "summarizeDecisionsHint"],
+          "open-questions": ["collectQuestions", "collectQuestionsHint"]
+        };
+        document.querySelectorAll(".recall-action").forEach((button) => {
+          const [title, hint] = recall[button.dataset.recallAction] || [];
+          if (title) button.innerHTML = `${escapeHtml(t(title))}<span>${escapeHtml(t(hint))}</span>`;
+        });
+        const guideRows = isEnglish
+          ? [
+            "<strong>Drag nodes:</strong> Adjust the layout while connected edges update live.",
+            "<strong>Context task:</strong> Provides relationship context but is not a direct match.",
+            "<strong>Gray solid line:</strong> The project contains this task.",
+            "<strong>Purple solid line:</strong> An explicit fork confirmed by metadata.",
+            "<strong>Blue dashed line:</strong> Evidence shows that the later task continues the discussion.",
+            "<strong>Green dashed line:</strong> The tasks share a conversation prefix but remain peers.",
+            "<strong>Gray dotted line:</strong> Content is similar; no sequence, inheritance, or fork is implied.",
+            "<strong>Records and memories:</strong> Source records are evidence; memory candidates are derived summaries."
+          ]
+          : [
+            "<strong>拖动节点：</strong>调整布局时，连接边会同步更新。",
+            "<strong>上下文任务：</strong>提供关系背景，但不是直接匹配。",
+            "<strong>灰色实线：</strong>项目包含该任务。",
+            "<strong>紫色实线：</strong>由元数据确认的明确分支。",
+            "<strong>蓝色虚线：</strong>证据显示后续任务延续了该讨论。",
+            "<strong>绿色虚线：</strong>任务共享对话前缀，但仍处于同一层级。",
+            "<strong>灰色点线：</strong>内容相近，不代表顺序、继承或分支关系。",
+            "<strong>记录与记忆：</strong>来源记录是证据；记忆候选是派生摘要。"
+          ];
+        document.querySelectorAll("#graphGuide .guide-row > span:last-child").forEach((row, index) => {
+          row.innerHTML = guideRows[index] || "";
+        });
+        if (state.graph) renderGraph();
       }
 
       function escapeHtml(value) {
@@ -2312,14 +2691,14 @@
         const query = state.query.trim() || String(state.graph.query || "").trim();
         const source = record.source || {};
         const fields = [
-          ["Previous user message", source.prompt],
-          ["Original answer", record.content],
-          ["Source task title", source.threadTitle],
+          [t("previousUserMessage"), source.prompt],
+          [t("originalAnswer"), record.content],
+          [t("sourceTaskTitle"), source.threadTitle],
         ];
         for (const [location, value] of fields) {
           if (query && String(value || "").toLocaleLowerCase().includes(query.toLocaleLowerCase())) {
             return {
-              location: `${location} · ${matchLabels[record.matchType] || "Match"}`,
+              location: `${location} · ${matchLabels()[record.matchType] || t("match")}`,
               text: excerptAround(value, query),
               query,
             };
@@ -2328,8 +2707,8 @@
         const fallback = source.excerpt || record.content || record.summary || record.matchReason;
         if (!fallback) return null;
         return {
-          location: `${record.matchType === "semantic" ? "Semantic evidence" : "Source excerpt"} · ${
-            Number.isFinite(Number(record.matchScore)) ? `${Math.round(Number(record.matchScore) * 100)}%` : "Needs verification"
+          location: `${record.matchType === "semantic" ? t("semanticEvidence") : t("sourceExcerpt")} · ${
+            Number.isFinite(Number(record.matchScore)) ? `${Math.round(Number(record.matchScore) * 100)}%` : t("needsVerification")
           }`,
           text: excerptAround(fallback, ""),
           query: "",
@@ -2351,32 +2730,32 @@
       function renderResults() {
         const records = matchingRecords();
         const query = state.query.trim() || state.graph.query || "";
-        el("resultViewTitle").textContent = query ? `Source records for “${query}”` : "Project source records";
+        el("resultViewTitle").textContent = query ? t("sourceRecordsFor", { query }) : t("projectSourceRecords");
         el("resultViewSummary").textContent = records.length
-          ? `${records.length} records · exact matches and user-confirmed results first`
-          : "No trustworthy source records were found. Try another keyword or return a clear not-found result.";
+          ? t("recordsFound", { count: records.length })
+          : t("noTrustworthyRecords");
         el("resultList").innerHTML = records.length
           ? records.slice(0, 12).map((record, index) => {
             const owner = state.graph.nodes.find((node) => node.id === ownerThreadId(record));
             const evidence = evidenceFor(record);
             const statusClass = record.userFeedback || "";
             const statusText = record.userFeedback === "correct"
-              ? "Confirmed"
+              ? t("confirmed")
               : record.userFeedback === "incorrect"
-                ? "Excluded"
+                ? t("excluded")
                 : `${Math.round(Number(record.matchScore || 0) * 100)}%`;
             return `<button class="result-card ${state.selectedContentId === record.id ? "active" : ""}"
               data-record-id="${escapeHtml(record.id)}" data-thread-id="${escapeHtml(ownerThreadId(record))}">
               <span class="result-rank">${index + 1}</span>
               <span class="result-card-main">
-                <span class="result-source">${escapeHtml(owner?.title || record.source?.threadTitle || "Unknown source task")}</span>
+                <span class="result-source">${escapeHtml(owner?.title || record.source?.threadTitle || t("unknownSourceTask"))}</span>
                 <span class="result-card-title">${highlightText(record.title, query)}</span>
                 <span class="result-excerpt">${highlightText(evidence?.text || record.summary || "", query)}</span>
               </span>
               <span class="result-score ${escapeHtml(statusClass)}">${escapeHtml(statusText)}</span>
             </button>`;
           }).join("")
-          : `<div class="result-empty">No verifiable source records were found.<br>MemoryGraph will not invent a plausible answer just to fill the result list.</div>`;
+          : `<div class="result-empty">${t("noVerifiableRecords")}</div>`;
 
         el("resultList").querySelectorAll(".result-card").forEach((button) => {
           button.addEventListener("click", () => {
@@ -2583,18 +2962,18 @@
               style="left:${pos.x}px;top:${pos.y}px;--accent:${accent}"
               tabindex="0" role="button" aria-label="${escapeHtml(node.title)}" aria-pressed="${state.selectedId === node.id}">
               <div class="node-head">
-                <span class="kind">${escapeHtml(kindLabels[node.kind] || "Task")}</span>
+                <span class="kind">${escapeHtml(kindLabels()[node.kind] || t("task"))}</span>
                 <span class="node-head-meta">
-                  <span class="selected-label">Selected</span>
-                  <span class="context-label">Context</span>
+                  <span class="selected-label">${t("selected")}</span>
+                  <span class="context-label">${t("context")}</span>
                   <span class="status-dot ${escapeHtml(node.status || "")}"></span>
                 </span>
               </div>
               <h3 class="node-title">${escapeHtml(node.title)}</h3>
-              <p class="node-summary">${escapeHtml(node.summary || "No summary")}</p>
+              <p class="node-summary">${escapeHtml(node.summary || t("noSummary"))}</p>
               ${node.kind === "thread"
-                ? `<span class="node-related-count ${contentMatches ? "has-messages" : ""}" title="${contentMatches} messages related to the current search">${contentMatches ? `Matched ${contentMatches} records` : "No direct match"}</span>
-                  ${bestRank ? `<span class="node-match-rank">Top ${bestRank}</span>` : ""}`
+                ? `<span class="node-related-count ${contentMatches ? "has-messages" : ""}" title="${t("relatedMessages", { count: contentMatches })}">${contentMatches ? t("matchedRecords", { count: contentMatches }) : t("noDirectMatch")}</span>
+                  ${bestRank ? `<span class="node-match-rank">${t("top", { rank: bestRank })}</span>` : ""}`
                 : ""}
             </article>`;
         }).join("");
@@ -2711,11 +3090,11 @@
 
       function edgeShortLabel(edge) {
         const label = {
-          fork: "Explicit fork",
-          "shared-prefix": "Shared context",
-          continuation: "Continuation",
-          related: "Content-related"
-        }[edge.type] || edge.label || "Related";
+          fork: t("explicitFork"),
+          "shared-prefix": t("sharedPrefix"),
+          continuation: t("continuation"),
+          related: t("contentRelationships")
+        }[edge.type] || edge.label || t("context");
         return edge.type === "related" && edge.confidence
           ? `${label} ${Math.round(edge.confidence * 100)}%`
           : label;
@@ -2723,15 +3102,10 @@
 
       function edgeLabel(edge) {
         const type = {
-          membership: "Belongs to project",
-          fork: "Explicit fork",
-          "shared-prefix": "Shared conversation prefix",
-          continuation: "Continuation",
-          related: "Content-related",
-          contains: "Contains source record",
-          derived: "Derived from source record"
-        }[edge.type] || "Related";
-        return `${edge.label || type} · Confidence ${Math.round((edge.confidence || 0) * 100)}%`;
+          membership: t("belongsToProject"), fork: t("explicitFork"), "shared-prefix": t("sharedPrefix"),
+          continuation: t("continuation"), related: t("contentRelationships"), contains: t("sourceRecords"), derived: t("memoryCandidates")
+        }[edge.type] || t("context");
+        return `${edge.label || type} · ${state.locale === "en" ? "Confidence" : "置信度"} ${Math.round((edge.confidence || 0) * 100)}%`;
       }
 
       function renderFilters() {
@@ -2771,23 +3145,23 @@
         const explicitForks = primaryEdges().filter((edge) => edge.type === "fork").length;
         const retrieval = state.graph.retrieval || {};
         const query = state.graph.query
-          ? `<br>Current search: <strong>${escapeHtml(state.graph.query)}</strong>`
+          ? `<br>${state.locale === "en" ? "Current search" : "当前搜索"}：<strong>${escapeHtml(state.graph.query)}</strong>`
           : "";
         const scan = retrieval.scannedTasks
-          ? `<br>Scanned ${retrieval.scannedTasks} tasks · closely read ${retrieval.candidateTasks || 0} tasks`
+          ? `<br>${state.locale === "en" ? `Scanned ${retrieval.scannedTasks} tasks · closely read ${retrieval.candidateTasks || 0} tasks` : `已扫描 ${retrieval.scannedTasks} 个任务 · 深读 ${retrieval.candidateTasks || 0} 个任务`}`
           : "";
         const index = retrieval.indexMode
-          ? `<br>Local index: ${escapeHtml(retrieval.indexMode === "incremental" ? "Incremental refresh" : "Full build")}` +
-            ` · Changed ${retrieval.changedFiles || 0} · Reused ${retrieval.reusedFiles || 0}`
+          ? `<br>${t("localIndex")}：${escapeHtml(retrieval.indexMode === "incremental" ? t("incrementalRefresh") : t("fullBuild"))}` +
+            `${state.locale === "en" ? " · Changed" : " · 已变更"} ${retrieval.changedFiles || 0} · ${state.locale === "en" ? "Reused" : "复用"} ${retrieval.reusedFiles || 0}`
           : "";
         const snapshot = state.graph.snapshot?.fileName
-          ? `<br>Local snapshot: <strong>${escapeHtml(state.graph.snapshot.fileName)}</strong>`
+          ? `<br>${state.locale === "en" ? "Local snapshot" : "本地快照"}：<strong>${escapeHtml(state.graph.snapshot.fileName)}</strong>`
           : "";
         el("stats").innerHTML =
-          `<strong>1</strong> project · <strong>${tasks}</strong> tasks<br>` +
-          `<strong>${taskRelations}</strong> task relationships · <strong>${contentRelations}</strong> content relationships<br>` +
-          `<strong>${explicitForks}</strong> explicit forks<br>` +
-          `${records} source records · ${memories} memory candidates${scan}${index}${query}${snapshot}`;
+          `<strong>1</strong> ${t("project")} · <strong>${tasks}</strong> ${t("tasks")}<br>` +
+          `<strong>${taskRelations}</strong> ${state.locale === "en" ? "task relationships" : "任务关系"} · <strong>${contentRelations}</strong> ${state.locale === "en" ? "content relationships" : "内容关系"}<br>` +
+          `<strong>${explicitForks}</strong> ${state.locale === "en" ? "explicit forks" : "明确分支"}<br>` +
+          `${records} ${t("sourceRecords")} · ${memories} ${t("memoryCandidates")}${scan}${index}${query}${snapshot}`;
       }
 
       function renderHeaderMetrics() {
@@ -2795,9 +3169,9 @@
         const records = state.graph.nodes.filter((node) => node.kind === "record").length;
         const memories = state.graph.nodes.filter((node) => node.kind === "memory").length;
         el("headerMetrics").innerHTML = [
-          `<span class="metric"><strong>${tasks}</strong> tasks</span>`,
-          `<span class="metric"><strong>${records}</strong> records</span>`,
-          `<span class="metric"><strong>${memories}</strong> memories</span>`
+          `<span class="metric"><strong>${tasks}</strong> ${t("tasks")}</span>`,
+          `<span class="metric"><strong>${records}</strong> ${t("records")}</span>`,
+          `<span class="metric"><strong>${memories}</strong> ${t("memories")}</span>`
         ].join("");
       }
 
@@ -2856,8 +3230,8 @@
         });
 
         el("resultPill").textContent = query
-          ? `${matchedRecords.size} source records · ${matchedMemories.size} memory candidates · ${matchedTasks.size} tasks`
-          : `1 project · ${primaryNodes().filter((node) => node.kind === "thread").length} tasks`;
+          ? `${matchedRecords.size} ${t("sourceRecords")} · ${matchedMemories.size} ${t("memoryCandidates")} · ${matchedTasks.size} ${t("tasks")}`
+          : `1 ${t("project")} · ${primaryNodes().filter((node) => node.kind === "thread").length} ${t("tasks")}`;
         renderResults();
       }
 
@@ -2876,12 +3250,12 @@
       }
 
       function formatTime(value) {
-        if (!value) return "Unknown";
+        if (!value) return state.locale === "en" ? "Unknown" : "未知";
         let timestamp = Number(value);
         if (Number.isFinite(timestamp) && timestamp < 1e12) timestamp *= 1000;
         const date = Number.isFinite(timestamp) ? new Date(timestamp) : new Date(value);
         if (Number.isNaN(date.getTime())) return String(value);
-        return new Intl.DateTimeFormat("en-US", {
+        return new Intl.DateTimeFormat(state.locale === "en" ? "en-US" : "zh-CN", {
           year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
         }).format(date);
       }
@@ -2927,18 +3301,18 @@
         const matchNode = activeContent || node;
         detail.style.setProperty("--accent", accent);
         el("detailKind").textContent = [
-          kindLabels[node.kind] || "Task",
-          matchLabels[matchNode.matchType]
+          kindLabels()[node.kind] || t("task"),
+          matchLabels()[matchNode.matchType]
         ].filter(Boolean).join(" · ");
         el("detailTitle").textContent = node.title;
-        el("detailSummary").textContent = node.summary || "No summary";
-        el("detailStatus").textContent = node.status || "Unknown";
+        el("detailSummary").textContent = node.summary || t("noSummary");
+        el("detailStatus").textContent = node.status || (state.locale === "en" ? "Unknown" : "未知");
         el("detailTime").textContent = formatTime(sourceTime);
         el("detailId").textContent = node.id;
-        el("detailCwd").textContent = sourceCwd || "Not provided";
+        el("detailCwd").textContent = sourceCwd || (state.locale === "en" ? "Not provided" : "未提供");
         el("matchReason").hidden = logMode || !matchNode.matchReason;
         el("matchReason").textContent = matchNode.matchReason
-          ? `Match reason: ${matchNode.matchReason}${matchNode.matchScore ? ` · ${Math.round(matchNode.matchScore * 100)}%` : ""}`
+          ? `${state.locale === "en" ? "Match reason" : "匹配原因"}：${matchNode.matchReason}${matchNode.matchScore ? ` · ${Math.round(matchNode.matchScore * 100)}%` : ""}`
           : "";
         const evidence = activeContent?.kind === "record" ? evidenceFor(activeContent) : null;
         el("evidencePanel").hidden = logMode || !evidence;
@@ -2960,7 +3334,7 @@
           button.disabled = active;
         });
         el("memoryReviewState").textContent = activeContent?.kind === "memory"
-          ? `Current status: ${memoryStatusLabels[activeContent.memoryStatus] || activeContent.memoryStatus || "Candidate"}${
+          ? t("currentStatus", { status: memoryStatusLabels()[activeContent.memoryStatus] || activeContent.memoryStatus || t("candidate") }) + `${
             activeContent.reviewedAt ? ` · ${formatTime(activeContent.reviewedAt)}` : ""
           }`
           : "";
@@ -2981,23 +3355,23 @@
           button.setAttribute("aria-pressed", String(active));
         });
         el("contentSection").hidden = logMode || !contents.length;
-        const contentScopeLabel = node.kind === "project" ? "Project" : "Task";
+        const contentScopeLabel = node.kind === "project" ? t("project") : t("task");
         el("contentSectionLabel").textContent = state.contentKind === "memory"
-          ? `${contentScopeLabel} memory candidates`
-          : `${contentScopeLabel} source records`;
+          ? `${contentScopeLabel}${state.locale === "en" ? " memory candidates" : "记忆候选"}`
+          : `${contentScopeLabel}${state.locale === "en" ? " source records" : "来源记录"}`;
         const emptyContentTab = !logMode && contents.length === 0;
         el("contentEmpty").hidden = !emptyContentTab;
         el("contentEmpty").textContent = state.contentKind === "memory"
-          ? `${contentScopeLabel} has no memory candidates yet. Candidates are extracted only from source answers with explicit markers such as “Conclusion,” “Final conclusion,” or “One-line summary.”`
-          : `${contentScopeLabel} has no source records to display. Refresh the local index or select another task with a search match.`;
+          ? t("noMemoryCandidates", { scope: contentScopeLabel })
+          : t("noSourceRecords", { scope: contentScopeLabel });
         el("contentTabs").innerHTML = contents.map((content) =>
           `<button class="content-tab ${content.id === activeContent?.id ? "active" : ""}" data-content-id="${escapeHtml(content.id)}">
-            <span class="tab-kind">${escapeHtml(kindLabels[content.kind] || "Content")}</span>
+            <span class="tab-kind">${escapeHtml(kindLabels()[content.kind] || t("context"))}</span>
             <span class="tab-title">${escapeHtml(content.title)}</span>
             <span class="tab-state ${escapeHtml(content.matchType || "")}">${escapeHtml(
               content.kind === "memory"
-                ? (memoryStatusLabels[content.memoryStatus] || "Candidate")
-                : (matchLabels[content.matchType] || "Context")
+                ? (memoryStatusLabels()[content.memoryStatus] || t("candidate"))
+                : (matchLabels()[content.matchType] || t("context"))
             )}</span>
           </button>`).join("");
         el("contentTabs").querySelectorAll(".content-tab").forEach((button) => {
@@ -3011,8 +3385,8 @@
         el("promptBlock").hidden = !source.prompt;
         el("contentBlock").hidden = !activeContent?.content;
         el("contentBlockLabel").textContent = activeContent?.kind === "memory"
-          ? "Memory candidate (derived from the source record below)"
-          : "Original answer";
+          ? t("derivedMemory")
+          : t("originalAnswer");
         el("sourcePrompt").textContent = source.prompt || "";
         el("recordContent").innerHTML = renderMarkdown(activeContent?.content || "");
 
@@ -3020,22 +3394,22 @@
           ["sourceTitleRow", "sourceTitle", source.threadTitle],
           ["sourceThreadRow", "sourceThreadId", sourceThreadId],
           ["sourceTurnRow", "sourceTurnId", source.turnId],
-          ["sourceRoleRow", "sourceRole", roleLabels[source.role] || source.role],
+          ["sourceRoleRow", "sourceRole", roleLabels()[source.role] || source.role],
           ["duplicateRow", "duplicateCount", source.duplicateCount > 1
-            ? `${source.duplicateCount} log copies merged into one record`
+            ? t("logCopies", { count: source.duplicateCount })
             : ""],
           ["copiesRow", "sourceCopies", Array.isArray(source.copies) && source.copies.length
             ? source.copies.map((copy) =>
               typeof copy === "string" ? copy : (copy.threadTitle || copy.threadId)).filter(Boolean).join(", ")
             : ""],
           ["memoryTypeRow", "memoryType", activeContent?.kind === "memory"
-            ? (memoryTypeLabels[activeContent.memoryType] || activeContent.memoryType)
+            ? (memoryTypeLabels()[activeContent.memoryType] || activeContent.memoryType)
             : ""],
           ["memoryStatusRow", "memoryStatus", activeContent?.kind === "memory"
-            ? (memoryStatusLabels[activeContent.memoryStatus] || activeContent.memoryStatus)
+            ? (memoryStatusLabels()[activeContent.memoryStatus] || activeContent.memoryStatus)
             : ""],
           ["evidenceTypeRow", "evidenceType", activeContent?.kind === "memory"
-            ? (evidenceTypeLabels[activeContent.evidenceType] || activeContent.evidenceType)
+            ? (evidenceTypeLabels()[activeContent.evidenceType] || activeContent.evidenceType)
             : ""],
           ["memoryConfidenceRow", "memoryConfidence", activeContent?.kind === "memory" &&
             Number.isFinite(Number(activeContent.confidence))
@@ -3053,7 +3427,9 @@
         el("inspectTask").hidden = !sourceThreadId;
         el("copyTaskTitle").hidden = !sourceThreadId;
         el("copyRecord").hidden = logMode || !activeContent?.content;
-        el("copyRecord").textContent = activeContent?.kind === "memory" ? "Copy memory candidate" : "Copy original answer";
+        el("copyRecord").textContent = activeContent?.kind === "memory"
+          ? (state.locale === "en" ? "Copy memory candidate" : "复制记忆候选")
+          : (state.locale === "en" ? "Copy original answer" : "复制原始回答");
       }
 
       function applyTransform() {
@@ -3115,7 +3491,7 @@
             return true;
           }
         } catch (error) {
-          showToast(`Could not send: ${error.message || error}`);
+          showToast(t("sendFailed", { error: error.message || error }));
           return false;
         }
         return false;
@@ -3127,7 +3503,7 @@
         try {
           return await api.callTool(name, args);
         } catch (error) {
-          showToast(`Local persistence is temporarily unavailable: ${error.message || error}`);
+          showToast(t("persistenceUnavailable", { error: error.message || error }));
           return null;
         }
       }
@@ -3244,7 +3620,7 @@
           link.click();
           return true;
         } catch (error) {
-          showToast(`Could not open the source task: ${error.message || error}`);
+          showToast(t("openFailed", { error: error.message || error }));
           return false;
         }
       }
@@ -3254,7 +3630,7 @@
           await navigator.clipboard.writeText(value);
           showToast(successMessage);
         } catch {
-          showToast("Clipboard access is unavailable in this preview");
+          showToast(t("clipboardUnavailable"));
         }
       }
 
@@ -3326,7 +3702,7 @@
         state.query = graph.query || "";
         el("searchInput").value = state.query;
         el("graphTitle").textContent = graph.title || "MemoryGraph";
-        el("graphScope").textContent = graph.scope || "Current project";
+        el("graphScope").textContent = graph.scope || t("currentProject");
         renderGraph();
         detail.classList.toggle("open", Boolean(state.selectedId));
         requestAnimationFrame(readableStartView);
@@ -3354,6 +3730,11 @@
         state.query = event.target.value;
         updateSearch();
       });
+      el("languageButton").addEventListener("click", () => {
+        state.locale = state.locale === "en" ? "zh-CN" : "en";
+        try { localStorage.setItem(LANGUAGE_KEY, state.locale); } catch {}
+        applyLocale();
+      });
       document.querySelectorAll(".view-button").forEach((button) => {
         button.addEventListener("click", () => setCanvasMode(button.dataset.canvasMode));
       });
@@ -3361,7 +3742,7 @@
         button.addEventListener("click", async () => {
           const action = button.dataset.recallAction;
           const sent = await sendFollowUp(recallPrompt(action), "Continue project context");
-          showToast(sent ? "Asked Codex to restore project context" : "Could not send the continuation request directly");
+          showToast(sent ? t("continuationRequested") : t("continuationUnavailable"));
         });
       });
       document.querySelectorAll(".feedback-button").forEach((button) => {
@@ -3383,7 +3764,7 @@
           });
           renderDetail();
           renderResults();
-          showToast(verdict === "correct" ? "Confirmed as the correct record" : "Marked as an incorrect result");
+          showToast(verdict === "correct" ? t("correctRecordSaved") : t("incorrectRecordSaved"));
         });
       });
       document.querySelectorAll(".memory-review-button").forEach((button) => {
@@ -3406,10 +3787,10 @@
           });
           renderDetail();
           showToast(status === "confirmed"
-            ? "Memory candidate confirmed"
+            ? t("memoryConfirmed")
             : status === "rejected"
-              ? "Memory candidate rejected"
-              : "Reset to memory candidate");
+              ? t("memoryRejected")
+              : t("memoryReset"));
         });
       });
       document.querySelectorAll(".detail-switch-button").forEach((button) => {
@@ -3432,7 +3813,7 @@
           event.stopPropagation();
           const layer = button.dataset.layer;
           if (state.visibleLayers.has(layer) && state.visibleLayers.size === 1) {
-            showToast("Keep at least one relationship layer");
+            showToast(t("keepOneLayer"));
             return;
           }
           if (state.visibleLayers.has(layer)) state.visibleLayers.delete(layer);
@@ -3456,17 +3837,17 @@
       });
       el("refreshButton").addEventListener("click", async () => {
         const sent = await sendFollowUp(
-          `Refresh MemoryGraph: incrementally read local task records for “${state.graph.scope || "Current project"}” and update the index and graph.`,
+          `Refresh MemoryGraph: incrementally read local task records for “${state.graph.scope || t("currentProject")}” and update the index and graph.`,
           "Refresh MemoryGraph"
         );
-        showToast(sent ? "Asked Codex for an incremental refresh" : "Type “Refresh MemoryGraph” in the conversation");
+        showToast(sent ? t("refreshRequested") : t("refreshFallback"));
       });
       el("openTask").addEventListener("click", async () => {
         const anchor = selectedSourceAnchor();
         if (!anchor.task || !anchor.threadId) return;
         const opened = await openCodexTask(anchor.threadId);
-        if (opened) showToast("Opening source task");
-        else await copyText(anchor.threadId, "Could not open directly; source task ID copied");
+        if (opened) showToast(t("openedSourceTask"));
+        else await copyText(anchor.threadId, state.locale === "en" ? "Could not open directly; source task ID copied" : "无法直接打开，已复制来源任务 ID");
       });
       el("continueWithRecord").addEventListener("click", async () => {
         const anchor = selectedSourceAnchor();
@@ -3487,12 +3868,12 @@
       el("copyRecord").addEventListener("click", () => {
         const { content } = selectedTaskAndContent();
         if (content?.content) {
-          copyText(content.content, content.kind === "memory" ? "Memory candidate copied" : "Original answer copied");
+          copyText(content.content, content.kind === "memory" ? t("copiedMemory") : t("copiedAnswer"));
         }
       });
       el("copyTaskTitle").addEventListener("click", () => {
         const { task } = selectedTaskAndContent();
-        if (task) copyText(task.title, "Task title copied; paste it into Codex search");
+        if (task) copyText(task.title, t("copiedTaskTitle"));
       });
       detailResizer.addEventListener("pointerdown", (event) => {
         if (window.innerWidth <= 650) return;
@@ -3529,7 +3910,7 @@
       });
       detailResizer.addEventListener("dblclick", () => {
         applyDetailWidth(DETAIL_WIDTH_DEFAULT, { persist: true });
-        showToast("Inspector width reset");
+        showToast(t("inspectorReset"));
       });
       detailResizer.addEventListener("keydown", (event) => {
         const bounds = detailWidthBounds();
@@ -3587,6 +3968,7 @@
         : demoGraph;
       restoreDetailWidth();
       ingestGraph(initialGraph);
+      applyLocale();
     })();
   </script>
 </body>

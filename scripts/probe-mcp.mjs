@@ -149,6 +149,12 @@ try {
   }
   if (resources.resources?.[0]?.mimeType !== "text/html;profile=mcp-app") throw new Error("Resource missing");
   if (!widget.contents?.[0]?.text?.includes("MemoryGraph")) throw new Error("Widget HTML missing");
+  if (!widget.contents?.[0]?.text?.includes('<html lang="zh-CN">')) {
+    throw new Error("Widget must default to Simplified Chinese");
+  }
+  if (!widget.contents?.[0]?.text?.includes('id="languageButton"')) {
+    throw new Error("Widget language switch is missing");
+  }
   if (mark.contents?.[0]?.mimeType !== "image/png" || !mark.contents?.[0]?.blob) {
     throw new Error("Widget mark missing");
   }

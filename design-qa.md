@@ -12,18 +12,19 @@ The implementation under review is:
 
 ## Implemented target characteristics
 
-- Light, editorial three-column workspace with a restrained blue-gray palette.
-- 56 px application header, 264 px project rail, flexible graph canvas, and a 410 px default inspector that can be resized from 320–720 px when viewport space permits.
-- Flat project navigation and low-noise canvas controls.
-- Larger 256 × 136 px task cards with cleaner status and match hierarchy.
+- Evidence-archive three-column workspace: deep-indigo project index, cool grid canvas, and warm reading inspector.
+- 64 px application header, 272 px project rail, flexible graph canvas, and a 432 px default inspector that can be resized from 320–720 px when viewport space permits.
+- Search and graph controls use translucent floating surfaces; the selected view uses a single blue gradient accent.
+- Larger 276 × 148 px task cards with a provenance-colored top edge and stronger selection state.
 - Blue selected state, amber retrieval state, and neutral context state.
 - Dedicated "Source records / Memory candidates" inspector switch with counts.
 - Search-first ranked record view with a one-click switch back to the DAG.
 - Visible match evidence, literal highlighting, and local correctness feedback.
 - Candidate-memory confirmation/rejection controls and project-continuation actions.
-- Reading-first inspector typography: 14 px source content, 12.5 px metadata, and a 22 px detail title.
+- Reading-first inspector typography: 13 px source content, 12.5 px metadata, and a 24 px detail title.
 - Mouse, pointer, and keyboard resizing for the desktop inspector; width persists locally and double-click restores the default.
 - Real transparent MemoryGraph mark served as a local MCP image resource.
+- 页面固定采用浅色背景；移动端保留相同的档案层级与阅读优先级。
 - Existing search, graph layers, Markdown rendering, node drag, source-task opening, and context inspection preserved.
 
 ## Automated checks completed
