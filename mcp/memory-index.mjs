@@ -198,7 +198,7 @@ function buildCanonicalRecords(fileEntries, titles) {
     const turnIds = threadTurns.get(session.threadId) || new Set();
     const thread = threads.get(session.threadId) || {
       id: session.threadId,
-      title: titles.get(session.threadId) || "Untitled task",
+      title: titles.get(session.threadId) || "未命名任务",
       cwd: session.cwd,
       createdAt: session.createdAt,
       updatedAt: session.createdAt,
@@ -213,7 +213,7 @@ function buildCanonicalRecords(fileEntries, titles) {
       const occurrence = {
         turnId: turn.turnId,
         threadId: session.threadId,
-        threadTitle: titles.get(session.threadId) || "Untitled task",
+        threadTitle: titles.get(session.threadId) || "未命名任务",
         cwd: session.cwd,
         sessionCreatedAt: session.createdAt,
         prompt: cleanUserPrompt(user.text),
@@ -467,15 +467,15 @@ function scoreRecord(record, query) {
   let score = 0;
   if (phrase && prompt.includes(phrase)) {
     score += 100;
-    reasons.push("The original user prompt contains the full query");
+    reasons.push("原始用户提问包含完整查询");
   }
   if (phrase && answer.includes(phrase)) {
     score += 70;
-    reasons.push("The original assistant answer contains the full query");
+    reasons.push("原始助手回答包含完整查询");
   }
   if (phrase && title.includes(phrase)) {
     score += 45;
-    reasons.push("The task title contains the full query");
+    reasons.push("任务标题包含完整查询");
   }
   let promptHits = 0;
   let answerHits = 0;
@@ -494,9 +494,9 @@ function scoreRecord(record, query) {
       titleHits += 1;
     }
   }
-  if (promptHits) reasons.push(`User prompt matched ${promptHits}/${tokens.length || 1} query terms`);
-  if (answerHits) reasons.push(`Assistant answer matched ${answerHits}/${tokens.length || 1} query terms`);
-  if (titleHits) reasons.push(`Task title matched ${titleHits}/${tokens.length || 1} query terms`);
+  if (promptHits) reasons.push(`用户提问匹配 ${promptHits}/${tokens.length || 1} 个查询词`);
+  if (answerHits) reasons.push(`助手回答匹配 ${answerHits}/${tokens.length || 1} 个查询词`);
+  if (titleHits) reasons.push(`任务标题匹配 ${titleHits}/${tokens.length || 1} 个查询词`);
   return {
     score,
     matchType: phrase && (prompt.includes(phrase) || answer.includes(phrase) || title.includes(phrase))
@@ -567,7 +567,7 @@ export function searchMemoryIndex(index, {
           ...item.ranking,
           score: item.ranking.score + densityBonus,
           reasons: densityBonus
-            ? [...item.ranking.reasons, `${taskHits - 1} additional relevant records in the same source task`]
+            ? [...item.ranking.reasons, `同一来源任务中还有 ${taskHits - 1} 条相关记录`]
             : item.ranking.reasons,
         },
       };
@@ -583,35 +583,35 @@ export function searchMemoryIndex(index, {
   const nodes = [{
     id: rootId,
     title: path.basename(index.cwd) || index.cwd,
-    summary: `${index.threads.length} local tasks · ${index.records.length} deduplicated records`,
+    summary: `${index.threads.length} 个本地任务 · ${index.records.length} 条去重记录`,
     kind: "project",
     status: "indexed",
     cwd: index.cwd,
-    cluster: "Project",
-    tags: ["Local index", "Complete project"],
+    cluster: "项目",
+    tags: ["本地索引", "完整项目"],
   }];
 
   for (const threadId of taskIds) {
     const thread = threadById.get(threadId) || {
       id: threadId,
-      title: "Untitled task",
+      title: "未命名任务",
       cwd: index.cwd,
     };
     const taskMatches = ranked.filter((item) => item.record.originThreadId === threadId);
     nodes.push({
       id: thread.id,
       title: thread.title,
-      summary: `${taskMatches.length} relevant source records`,
+      summary: `${taskMatches.length} 条相关来源记录`,
       kind: "thread",
       status: "indexed",
       cwd: thread.cwd,
       updatedAt: thread.updatedAt,
       hostId: "local",
-      cluster: "Search match",
+      cluster: "搜索匹配",
       matchType: taskMatches[0]?.ranking.matchType === "exact" ? "exact" : "context",
       matchScore: Math.min(1, (taskMatches[0]?.ranking.score || 0) / 160),
       matchReason: taskMatches[0]?.ranking.reasons.join("; ") || "",
-      tags: ["Source task", `${taskMatches.length} records`],
+      tags: ["来源任务", `${taskMatches.length} 条记录`],
     });
   }
 
@@ -623,9 +623,9 @@ export function searchMemoryIndex(index, {
     layer: "task",
     direction: "directed",
     evidenceType: "exact-cwd",
-    evidence: `The task working directory exactly matches the project scope: ${index.cwd}`,
+    evidence: `任务工作目录与项目范围完全一致：${index.cwd}`,
     confidence: 1,
-    label: "Belongs to project",
+    label: "属于项目",
   }));
   edges.push(...sharedPrefixEdges(index, taskIds));
 
@@ -640,18 +640,18 @@ export function searchMemoryIndex(index, {
     const score = Math.min(1, ranking.score / 160);
     nodes.push({
       id: record.id,
-      title: `Original answer: ${clamp(record.prompt, 72)}`,
+      title: `原始回答：${clamp(record.prompt, 72)}`,
       summary: clamp(record.answer.replace(/\s+/g, " "), 180),
       content: record.answer,
       kind: "record",
       status: "found",
       cwd: record.cwd,
       updatedAt: record.answerTimestamp,
-      cluster: "Source record",
+      cluster: "来源记录",
       matchType: ranking.matchType === "exact" ? "exact" : "context",
       matchScore: score,
       matchReason: ranking.reasons.join("; "),
-      tags: ["Original answer", `Top ${rank + 1}`],
+      tags: ["原始回答", `前 ${rank + 1}`],
       source: {
         threadId: record.originThreadId,
         turnId: record.turnId,
@@ -675,7 +675,7 @@ export function searchMemoryIndex(index, {
       layer: "content",
       direction: "directed",
       evidenceType: "turn-id",
-      evidence: `Turn ${record.turnId}`,
+      evidence: `轮次 ${record.turnId}`,
       confidence: 1,
     });
     for (const memory of memoryByRecord.get(record.id) || []) {
@@ -685,11 +685,11 @@ export function searchMemoryIndex(index, {
         status: memory.memoryStatus,
         cwd: record.cwd,
         updatedAt: record.answerTimestamp,
-        cluster: "Memory candidate",
+        cluster: "记忆候选",
         matchType: "context",
         matchScore: memory.confidence,
-        matchReason: "Extracted from an explicit conclusion marker in the original answer; not yet confirmed by the user",
-        tags: ["Memory candidate", "Needs review"],
+        matchReason: "从原始回答中的明确结论标记提取，尚未由用户确认",
+        tags: ["记忆候选", "待审核"],
       });
       edges.push({
         id: `derived:${record.id}:${memory.id}`,
@@ -701,7 +701,7 @@ export function searchMemoryIndex(index, {
         evidenceType: "explicit-statement",
         evidence: memory.content,
         confidence: memory.confidence,
-        label: "Extract memory candidate",
+        label: "提取记忆候选",
       });
     }
   });

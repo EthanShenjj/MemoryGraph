@@ -97,6 +97,9 @@ try {
   assert.equal(sourceRecord.threadId, "task-source", "earliest task owns the copied Turn");
   assert.equal(sourceRecord.duplicateCount, 2);
   assert.deepEqual(sourceRecord.copiedToThreads, ["task-source", "task-branch"]);
+  const sourceNode = searched.graph.nodes.find((node) => node.kind === "record" && node.source?.turnId === sourceRecord.turnId);
+  assert.equal(sourceNode?.title.startsWith("原始回答："), true);
+  assert.match(sourceNode?.matchReason || "", /原始用户提问|助手回答|任务标题/);
   assert(searched.graph.nodes.some((node) =>
     node.kind === "memory" &&
     node.memoryStatus === "candidate" &&

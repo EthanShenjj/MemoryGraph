@@ -1945,9 +1945,9 @@
       </div>
       <div class="result-pill" id="resultPill"></div>
       <div class="canvas-toolbar">
-        <button class="icon-button" id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button>
-        <button class="icon-button" id="fitView" title="Fit to canvas" aria-label="Fit to canvas">⌾</button>
-        <button class="icon-button" id="zoomIn" title="Zoom in" aria-label="Zoom in">＋</button>
+        <button class="icon-button" id="zoomOut" title="缩小" aria-label="缩小">−</button>
+        <button class="icon-button" id="fitView" title="适应画布" aria-label="适应画布">⌾</button>
+        <button class="icon-button" id="zoomIn" title="放大" aria-label="放大">＋</button>
       </div>
     </main>
 
@@ -2166,7 +2166,8 @@
           collectQuestions: "Collect unresolved questions", collectQuestionsHint: "Find items that still need confirmation"
         }
       };
-      const LANGUAGE_KEY = "memorygraph-language:v1";
+      // v2 intentionally ignores the previous English-first preference and restores Chinese as the default.
+      const LANGUAGE_KEY = "memorygraph-language:v2";
       function storedLocale() {
         try { return localStorage.getItem(LANGUAGE_KEY) === "en" ? "en" : "zh-CN"; } catch { return "zh-CN"; }
       }
@@ -3560,27 +3561,31 @@
       }
 
       function continuationRequest({ task, content, source, threadId, turnId }) {
-        const lines = [
-          `Continue from the source-verified MemoryGraph record below.`,
+        const english = state.locale === "en";
+        const lines = english ? [
+          "Continue from the source-verified MemoryGraph record below.",
           `Project: ${state.graph.scope || "Current project"}`,
           `Source task: ${source.threadTitle || task?.title || "Unknown"}`,
           `Source task ID: ${threadId || "Unknown"}`,
+        ] : [
+          "请基于下方已核验来源的 MemoryGraph 记录继续。",
+          `项目：${state.graph.scope || "当前项目"}`,
+          `来源任务：${source.threadTitle || task?.title || "未知"}`,
+          `来源任务 ID：${threadId || "未知"}`,
         ];
-        if (turnId) lines.push(`Source Turn ID: ${turnId}`);
-        if (source.prompt) lines.push(`Original user prompt: ${source.prompt}`);
-        lines.push(
-          "",
-          "Verified source content:",
-          String(content?.content || "").slice(0, 5000),
-          "",
-          "First explain in one paragraph how you understand this record and its context, then continue from it. Do not treat a memory candidate as a confirmed fact; reread the source task when needed."
+        if (turnId) lines.push(english ? `Source Turn ID: ${turnId}` : `来源轮次 ID：${turnId}`);
+        if (source.prompt) lines.push(english ? `Original user prompt: ${source.prompt}` : `原始用户提问：${source.prompt}`);
+        lines.push("", english ? "Verified source content:" : "已核验的来源内容：", String(content?.content || "").slice(0, 5000), "",
+          english
+            ? "First explain in one paragraph how you understand this record and its context, then continue from it. Do not treat a memory candidate as a confirmed fact; reread the source task when needed."
+            : "先用一段话说明你对这条记录及其上下文的理解，然后在此基础上继续。不要把记忆候选当作已确认事实；必要时请重新阅读来源任务。"
         );
         return lines.join("\n");
       }
 
       function recallPrompt(action) {
-        const scope = state.graph.scope || "Current project";
-        const prompts = {
+        const scope = state.graph.scope || (state.locale === "en" ? "Current project" : "当前项目");
+        const prompts = state.locale === "en" ? {
           resume: [
             `Resume recent work in project “${scope}” using MemoryGraph.`,
             "Use source timestamps to find the most recent relevant tasks and return: completed work, last confirmed decision, current blocker, and next step.",
@@ -3595,6 +3600,22 @@
             `Collect unresolved questions in project “${scope}”.`,
             "Find unresolved items, TODOs, risks, and conflicting conclusions across source records, memory candidates, and recent tasks.",
             "Rank items by impact and include the source task ID and Turn ID for each."
+          ],
+        } : {
+          resume: [
+            `使用 MemoryGraph 继续项目“${scope}”的近期工作。`,
+            "根据来源时间戳找到最近的相关任务，并返回：已完成工作、最后确认的决策、当前阻塞项和下一步。",
+            "每个结论都必须包含来源任务 ID 和轮次 ID；不要用没有依据的摘要补全空白。"
+          ],
+          decisions: [
+            `汇总项目“${scope}”近期已确认的决策。`,
+            "先返回已确认的记忆，再返回来源回答中的明确结论。",
+            "区分已确认、候选和已替代的决策，并附上来源任务 ID 和轮次 ID。"
+          ],
+          "open-questions": [
+            `收集项目“${scope}”中尚未解决的问题。`,
+            "从来源记录、记忆候选和近期任务中找出未解决事项、待办、风险与相互冲突的结论。",
+            "按影响程度排序，并为每一项附上来源任务 ID 和轮次 ID。"
           ],
         };
         return (prompts[action] || prompts.resume).join("\n");
@@ -3625,7 +3646,7 @@
         }
       }
 
-      async function copyText(value, successMessage = "Copied") {
+      async function copyText(value, successMessage = "已复制") {
         try {
           await navigator.clipboard.writeText(value);
           showToast(successMessage);
@@ -3659,21 +3680,25 @@
       }
 
       function contextRequest({ task, content, source, threadId, turnId }) {
-        const lines = [
+        const english = state.locale === "en";
+        const lines = english ? [
           "Inspect the original context of the Codex source record below.",
           `Source task ID: ${threadId}`,
           `Source task title: ${source.threadTitle || task?.title || "Unknown"}`
+        ] : [
+          "请查看下方 Codex 来源记录的原始上下文。",
+          `来源任务 ID：${threadId}`,
+          `来源任务标题：${source.threadTitle || task?.title || "未知"}`
         ];
-        if (turnId) lines.push(`Target Turn ID: ${turnId}`);
-        if (source.timestamp) lines.push(`Recorded at: ${formatTime(source.timestamp)}`);
-        if (source.prompt) lines.push(`User message before target answer: ${source.prompt}`);
-        if (source.excerpt) lines.push(`Target answer opening: ${source.excerpt}`);
-        else if (content?.content) lines.push(`Target answer opening: ${content.content.slice(0, 160)}`);
-        lines.push(
-          "",
-          "Call read_thread for this task and return two user/assistant turns before and after the target Turn.",
-          "Preserve message order, roles, and timestamps. Do not rely only on the graph summary or rewrite the source text.",
-          "If exact Turn ID lookup is unavailable, use the timestamp, preceding user message, and answer opening together, and state clearly that the location is approximate."
+        if (turnId) lines.push(english ? `Target Turn ID: ${turnId}` : `目标轮次 ID：${turnId}`);
+        if (source.timestamp) lines.push(english ? `Recorded at: ${formatTime(source.timestamp)}` : `记录时间：${formatTime(source.timestamp)}`);
+        if (source.prompt) lines.push(english ? `User message before target answer: ${source.prompt}` : `目标回答前的用户消息：${source.prompt}`);
+        if (source.excerpt) lines.push(english ? `Target answer opening: ${source.excerpt}` : `目标回答开头：${source.excerpt}`);
+        else if (content?.content) lines.push(english ? `Target answer opening: ${content.content.slice(0, 160)}` : `目标回答开头：${content.content.slice(0, 160)}`);
+        lines.push("",
+          english ? "Call read_thread for this task and return two user/assistant turns before and after the target Turn." : "请对该任务调用 read_thread，并返回目标轮次前后各两轮用户/助手消息。",
+          english ? "Preserve message order, roles, and timestamps. Do not rely only on the graph summary or rewrite the source text." : "保留消息顺序、角色和时间戳。不要只依赖图谱摘要，也不要改写来源文本。",
+          english ? "If exact Turn ID lookup is unavailable, use the timestamp, preceding user message, and answer opening together, and state clearly that the location is approximate." : "如果无法按精确轮次 ID 查找，请结合时间戳、前一条用户消息与回答开头进行定位，并明确说明该位置为近似匹配。"
         );
         return lines.join("\n");
       }
@@ -3836,9 +3861,12 @@
         if (document.fullscreenEnabled) document.documentElement.requestFullscreen().catch(() => {});
       });
       el("refreshButton").addEventListener("click", async () => {
+        const english = state.locale === "en";
         const sent = await sendFollowUp(
-          `Refresh MemoryGraph: incrementally read local task records for “${state.graph.scope || t("currentProject")}” and update the index and graph.`,
-          "Refresh MemoryGraph"
+          english
+            ? `Refresh MemoryGraph: incrementally read local task records for “${state.graph.scope || t("currentProject")}” and update the index and graph.`
+            : `刷新 MemoryGraph：增量读取“${state.graph.scope || t("currentProject")}”的本地任务记录，并更新索引和图谱。`,
+          english ? "Refresh MemoryGraph" : "刷新 MemoryGraph"
         );
         showToast(sent ? t("refreshRequested") : t("refreshFallback"));
       });
@@ -3853,17 +3881,17 @@
         const anchor = selectedSourceAnchor();
         if (!anchor.task || !anchor.content?.content) return;
         const prompt = continuationRequest(anchor);
-        const sent = await sendFollowUp(prompt, "Continue with verified record");
-        if (sent) showToast("Passed the source record to Codex");
-        else await copyText(prompt, "Could not send directly; continuation context copied");
+        const sent = await sendFollowUp(prompt, state.locale === "en" ? "Continue with verified record" : "基于已核验记录继续");
+        if (sent) showToast(state.locale === "en" ? "Passed the source record to Codex" : "已将来源记录交给 Codex");
+        else await copyText(prompt, state.locale === "en" ? "Could not send directly; continuation context copied" : "无法直接发送；已复制继续所需的上下文");
       });
       el("inspectTask").addEventListener("click", async () => {
         const anchor = selectedSourceAnchor();
         if (!anchor.task || !anchor.threadId) return;
         const prompt = contextRequest(anchor);
-        const sent = await sendFollowUp(prompt, "Inspect record context");
-        if (sent) showToast("Asked Codex to read the source context");
-        else await copyText(prompt, "Could not send directly; context-inspection instructions copied");
+        const sent = await sendFollowUp(prompt, state.locale === "en" ? "Inspect record context" : "查看记录上下文");
+        if (sent) showToast(state.locale === "en" ? "Asked Codex to read the source context" : "已请求 Codex 阅读来源上下文");
+        else await copyText(prompt, state.locale === "en" ? "Could not send directly; context-inspection instructions copied" : "无法直接发送；已复制上下文查看指令");
       });
       el("copyRecord").addEventListener("click", () => {
         const { content } = selectedTaskAndContent();

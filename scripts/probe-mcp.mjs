@@ -147,6 +147,10 @@ try {
   ]) {
     if (!toolNames.has(name)) throw new Error(`Tool missing: ${name}`);
   }
+  const searchTool = (tools.tools || []).find((tool) => tool.name === "search_memory_graph");
+  if (searchTool?.title !== "搜索 MemoryGraph" || !searchTool?.description?.includes("本地 Codex 会话存档")) {
+    throw new Error("Search tool must default to Chinese copy");
+  }
   if (resources.resources?.[0]?.mimeType !== "text/html;profile=mcp-app") throw new Error("Resource missing");
   if (!widget.contents?.[0]?.text?.includes("MemoryGraph")) throw new Error("Widget HTML missing");
   if (!widget.contents?.[0]?.text?.includes('<html lang="zh-CN">')) {
@@ -154,6 +158,9 @@ try {
   }
   if (!widget.contents?.[0]?.text?.includes('id="languageButton"')) {
     throw new Error("Widget language switch is missing");
+  }
+  if (!widget.contents?.[0]?.text?.includes('const LANGUAGE_KEY = "memorygraph-language:v2"')) {
+    throw new Error("Widget must reset legacy language preferences to Chinese");
   }
   if (mark.contents?.[0]?.mimeType !== "image/png" || !mark.contents?.[0]?.blob) {
     throw new Error("Widget mark missing");

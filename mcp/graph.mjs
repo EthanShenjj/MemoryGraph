@@ -69,7 +69,7 @@ export function normalizeGraph(input = {}) {
       id,
       // A thread title is the exact Codex task title and must survive normalization.
       // Visual clamping belongs to the widget, not to the data boundary.
-      title: text(raw?.title, "Untitled task", kind === "thread" ? 500 : 160),
+      title: text(raw?.title, "未命名任务", kind === "thread" ? 500 : 160),
       summary: text(raw?.summary, "", 1200),
       content: text(raw?.content, "", 20000),
       kind,
@@ -78,7 +78,7 @@ export function normalizeGraph(input = {}) {
       projectId: text(raw?.projectId, "", 160),
       cwd: text(raw?.cwd, "", 500),
       hostId: text(raw?.hostId, "", 120),
-      cluster: text(raw?.cluster, "Ungrouped", 80),
+      cluster: text(raw?.cluster, "未分组", 80),
       matchReason: text(raw?.matchReason, "", 300),
       matchType: MATCH_TYPES.has(raw?.matchType) ? raw.matchType : "",
       matchScore: Math.max(0, Math.min(1, number(raw?.matchScore, 0))),
@@ -126,7 +126,7 @@ export function normalizeGraph(input = {}) {
     version: 1,
     title: text(input.title, "MemoryGraph", 120),
     query: text(input.query, "", 240),
-    scope: text(input.scope, "Current project", 160),
+    scope: text(input.scope, "当前项目", 160),
     rootProjectId: text(input.rootProjectId, "", 160),
     mode: ["project", "search", "branch"].includes(input.mode) ? input.mode : "project",
     generatedAt: input.generatedAt || new Date().toISOString(),

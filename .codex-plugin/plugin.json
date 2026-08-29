@@ -1,15 +1,15 @@
 {
   "name": "memorygraph",
-  "version": "0.1.0+codex.2026082401",
-  "description": "Search a local-first, source-backed memory graph for one Codex project.",
+  "version": "0.1.0+codex.20260829123005",
+  "description": "\u4e3a\u5355\u4e2a Codex \u9879\u76ee\u68c0\u7d22\u672c\u5730\u4f18\u5148\u3001\u53ef\u8ffd\u6eaf\u6765\u6e90\u7684\u8bb0\u5fc6\u56fe\u8c31\u3002",
   "author": {
     "name": "Local developer"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "MemoryGraph",
-    "shortDescription": "Recover exact conversations and review extracted memory.",
-    "longDescription": "MemoryGraph incrementally indexes one local Codex project, returns source-backed prompt and answer records, separates task ancestry from content similarity, and extracts reviewable memory candidates with Turn-level provenance.",
+    "shortDescription": "\u627e\u56de\u7cbe\u786e\u5bf9\u8bdd\uff0c\u5e76\u5ba1\u6838\u63d0\u53d6\u51fa\u7684\u8bb0\u5fc6\u3002",
+    "longDescription": "MemoryGraph \u4e3a\u4e00\u4e2a\u672c\u5730 Codex \u9879\u76ee\u589e\u91cf\u5efa\u7acb\u7d22\u5f15\uff0c\u8fd4\u56de\u53ef\u8ffd\u6eaf\u6765\u6e90\u7684\u63d0\u95ee\u4e0e\u56de\u7b54\u8bb0\u5f55\uff0c\u533a\u5206\u4efb\u52a1\u7ee7\u627f\u5173\u7cfb\u4e0e\u5185\u5bb9\u76f8\u4f3c\u6027\uff0c\u5e76\u63d0\u53d6\u5e26\u8f6e\u6b21\u7ea7\u6765\u6e90\u4fe1\u606f\u3001\u53ef\u4f9b\u5ba1\u6838\u7684\u8bb0\u5fc6\u5019\u9009\u3002",
     "developerName": "Local developer",
     "category": "Productivity",
     "capabilities": [
@@ -18,10 +18,10 @@
     ],
     "brandColor": "#2F6BFF",
     "defaultPrompt": [
-      "Find an original answer in the current project's MemoryGraph",
-      "Verify this result with its task ID and Turn ID",
-      "Show task branches and content relationships for the current project",
-      "Extract reviewable memory candidates from source records"
+      "\u5728\u5f53\u524d\u9879\u76ee\u7684 MemoryGraph \u4e2d\u67e5\u627e\u539f\u59cb\u56de\u7b54",
+      "\u7528\u4efb\u52a1 ID \u548c\u8f6e\u6b21 ID \u6838\u9a8c\u8fd9\u6761\u7ed3\u679c",
+      "\u5c55\u793a\u5f53\u524d\u9879\u76ee\u7684\u4efb\u52a1\u5206\u652f\u548c\u5185\u5bb9\u5173\u8054",
+      "\u4ece\u6765\u6e90\u8bb0\u5f55\u4e2d\u63d0\u53d6\u53ef\u5ba1\u6838\u7684\u8bb0\u5fc6\u5019\u9009"
     ]
   },
   "mcpServers": "./.mcp.json"

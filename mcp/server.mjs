@@ -25,7 +25,7 @@ const RESOURCE_META = {
       resourceDomains: [],
     },
   },
-  "openai/widgetDescription": "Local-first MemoryGraph for source-backed Codex conversation recall.",
+  "openai/widgetDescription": "本地优先、可追溯来源的 Codex 对话记忆图谱。",
   "openai/widgetPrefersBorder": false,
   "openai/widgetCSP": {
     connect_domains: [],
@@ -35,8 +35,8 @@ const RESOURCE_META = {
 
 const TOOL = {
   name: "show_memory_graph",
-  title: "Show MemoryGraph",
-  description: "Open or refresh a project-rooted MemoryGraph and save a standalone date-title HTML snapshot by default. The canvas shows project and task structure; exact records, content relations, and memory candidates stay visibly distinct.",
+  title: "显示 MemoryGraph",
+  description: "打开或刷新以项目为根的 MemoryGraph，并默认保存带日期和标题的独立 HTML 快照。画布会清晰区分项目与任务结构、精确记录、内容关联和记忆候选。",
   inputSchema: {
     type: "object",
     additionalProperties: false,
@@ -50,11 +50,11 @@ const TOOL = {
       saveSnapshot: {
         type: "boolean",
         default: true,
-        description: "Save a standalone local HTML snapshot using date, time, and title.",
+        description: "保存带日期、时间和标题的独立本地 HTML 快照。",
       },
       snapshotTitle: {
         type: "string",
-        description: "Optional filename title. The graph title is used when omitted.",
+        description: "可选的文件名标题；未填写时使用图谱标题。",
       },
       nodes: {
         type: "array",
@@ -164,15 +164,15 @@ const TOOL = {
     },
     "openai/outputTemplate": RESOURCE_URI,
     "openai/widgetAccessible": true,
-    "openai/toolInvocation/invoking": "Building MemoryGraph...",
-    "openai/toolInvocation/invoked": "MemoryGraph ready",
+    "openai/toolInvocation/invoking": "正在生成 MemoryGraph…",
+    "openai/toolInvocation/invoked": "MemoryGraph 已就绪",
   },
 };
 
 const SEARCH_TOOL = {
   name: "search_memory_graph",
-  title: "Search MemoryGraph",
-  description: "Search the complete local Codex session archive for one exact project cwd. Builds or incrementally refreshes a local-only Turn index, pairs user prompts with final AI answers, deduplicates branch copies by Turn ID, attributes each record to its earliest source task, opens a source-backed MemoryGraph, and saves a standalone date-title HTML snapshot by default.",
+  title: "搜索 MemoryGraph",
+  description: "在精确项目工作目录对应的完整本地 Codex 会话存档中搜索。它会建立或增量刷新仅本地的轮次索引，将用户提问与最终 AI 回答配对，按轮次 ID 去重分支副本，将记录归属到最早的来源任务，打开可追溯来源的 MemoryGraph，并默认保存独立 HTML 快照。",
   inputSchema: {
     type: "object",
     additionalProperties: false,
@@ -180,23 +180,23 @@ const SEARCH_TOOL = {
     properties: {
       cwd: {
         type: "string",
-        description: "Exact project working directory. Results never cross this boundary.",
+        description: "精确的项目工作目录；结果不会跨越此边界。",
       },
-      query: { type: "string", description: "Literal user query. It is never silently replaced." },
+      query: { type: "string", description: "用户的原始查询，不会被静默替换。" },
       limit: { type: "number", minimum: 1, maximum: 20, default: 8 },
       forceRebuild: {
         type: "boolean",
         default: false,
-        description: "Reparse every project session instead of reusing unchanged local index entries.",
+        description: "重新解析每个项目会话，而不是复用未变化的本地索引条目。",
       },
       saveSnapshot: {
         type: "boolean",
         default: true,
-        description: "Save a standalone local HTML snapshot using date, time, and title.",
+        description: "保存带日期、时间和标题的独立本地 HTML 快照。",
       },
       snapshotTitle: {
         type: "string",
-        description: "Optional filename title. The MemoryGraph result title is used when omitted.",
+        description: "可选的文件名标题；未填写时使用 MemoryGraph 结果标题。",
       },
     },
   },
@@ -213,15 +213,15 @@ const SEARCH_TOOL = {
     },
     "openai/outputTemplate": RESOURCE_URI,
     "openai/widgetAccessible": true,
-    "openai/toolInvocation/invoking": "Searching local conversation memory...",
-    "openai/toolInvocation/invoked": "MemoryGraph search ready",
+    "openai/toolInvocation/invoking": "正在搜索本地对话记忆…",
+    "openai/toolInvocation/invoked": "MemoryGraph 搜索已就绪",
   },
 };
 
 const REFRESH_TOOL = {
   name: "refresh_memory_index",
-  title: "Refresh Memory Index",
-  description: "Build or incrementally refresh the local-only Turn-level memory index for one exact project cwd. This cache does not modify Codex tasks or conversation history.",
+  title: "刷新记忆索引",
+  description: "为精确的项目工作目录建立或增量刷新仅本地的轮次级记忆索引；该缓存不会修改 Codex 任务或对话历史。",
   inputSchema: {
     type: "object",
     additionalProperties: false,
@@ -241,8 +241,8 @@ const REFRESH_TOOL = {
 
 const FEEDBACK_TOOL = {
   name: "record_retrieval_feedback",
-  title: "Record Retrieval Feedback",
-  description: "Store local project-scoped feedback that marks one source record as correct or incorrect for a literal query. Future identical queries use the feedback as a bounded ranking signal.",
+  title: "记录检索反馈",
+  description: "保存项目范围内的本地反馈，将某条来源记录标为与原始查询相符或不相符；后续相同查询会将该反馈作为有限的排序信号。",
   inputSchema: {
     type: "object",
     additionalProperties: false,
@@ -271,8 +271,8 @@ const FEEDBACK_TOOL = {
 
 const REVIEW_MEMORY_TOOL = {
   name: "review_memory_candidate",
-  title: "Review Memory Candidate",
-  description: "Confirm, reject, correct, supersede, or reset one local project-scoped memory candidate while preserving its source task and Turn provenance.",
+  title: "审核记忆候选",
+  description: "在保留来源任务和轮次级溯源信息的同时，确认、拒绝、修正、替代或重置一条项目范围内的本地记忆候选。",
   inputSchema: {
     type: "object",
     additionalProperties: false,
@@ -307,8 +307,8 @@ function resultFor(graph, extraStructuredContent = {}) {
   return {
     content: [{
       type: "text",
-      text: `MemoryGraph opened with ${graph.nodes.length} nodes and ${graph.edges.length} edges.` +
-        (snapshot?.path ? ` Snapshot saved to ${snapshot.path}.` : ""),
+      text: `MemoryGraph 已打开，包含 ${graph.nodes.length} 个节点和 ${graph.edges.length} 条关系。` +
+        (snapshot?.path ? ` 快照已保存至 ${snapshot.path}。` : ""),
     }],
     structuredContent: {
       version: 1,
@@ -350,7 +350,7 @@ function refreshResult(refreshed) {
   return {
     content: [{
       type: "text",
-      text: `Memory index ${refreshed.stats.mode}: ${refreshed.stats.indexedTasks} tasks, ${refreshed.stats.indexedRecords} canonical records, ${refreshed.stats.memoryCandidates} memory candidates.`,
+      text: `记忆索引已${refreshed.stats.mode === "incremental" ? "增量刷新" : "完整构建"}：${refreshed.stats.indexedTasks} 个任务、${refreshed.stats.indexedRecords} 条规范记录、${refreshed.stats.memoryCandidates} 条记忆候选。`,
     }],
     structuredContent: {
       version: 1,
@@ -426,8 +426,8 @@ function handle(method, params = {}) {
           content: [{
             type: "text",
             text: feedback.verdict === "correct"
-              ? "Retrieval result confirmed and stored locally."
-              : "Retrieval result marked incorrect and stored locally.",
+              ? "检索结果已确认为正确并保存到本地。"
+              : "检索结果已标记为不正确并保存到本地。",
           }],
           structuredContent: {
             version: 1,
@@ -441,7 +441,7 @@ function handle(method, params = {}) {
         return {
           content: [{
             type: "text",
-            text: `Memory candidate review stored locally with status ${review.status}.`,
+            text: `记忆候选审核已保存到本地，当前状态：${review.status}。`,
           }],
           structuredContent: {
             version: 1,
@@ -458,15 +458,15 @@ function handle(method, params = {}) {
             uri: RESOURCE_URI,
             name: "memorygraph-widget",
             title: "MemoryGraph",
-            description: "Searchable, source-backed Codex conversation memory graph.",
+            description: "可搜索、可追溯来源的 Codex 对话记忆图谱。",
             mimeType: "text/html;profile=mcp-app",
             _meta: RESOURCE_META,
           },
           {
             uri: MARK_URI,
             name: "memorygraph-mark",
-            title: "MemoryGraph mark",
-            description: "Local app mark used by the MemoryGraph widget.",
+            title: "MemoryGraph 标识",
+            description: "MemoryGraph 小组件使用的本地应用标识。",
             mimeType: "image/png",
           },
         ],
