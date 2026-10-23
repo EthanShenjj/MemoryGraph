@@ -32,7 +32,8 @@ Find the original record first and treat it as evidence. Preserve its source anc
    - Pair a user message with the following assistant answer as one logical record.
 6. Rank records in this order:
    - `exact`: literal text, quoted fragment, or a direct prompt/answer intent match.
-   - `semantic`: the record answers the same intent with different words.
+   - `lexical`: related words, aliases, or language variants match the source.
+   - `semantic`: the record answers the same intent with different words; use only when an actual semantic retrieval path supports it. The local index currently uses lexical expansion, not vector search.
    - `context`: a neighboring turn or related task that explains the match.
 7. Deduplicate copied history and transport copies.
    - Treat a Turn ID as one logical record even when it appears in several branch tasks.
@@ -101,7 +102,7 @@ Every `record` detail node should include:
 - `summary`: one sentence describing what the record contains.
 - `content`: the exact original message.
 - `kind`: `record`.
-- `matchType`: `exact`, `semantic`, or `context`.
+- `matchType`: `exact`, `lexical`, `semantic`, or `context`.
 - `matchScore`: 0 to 1.
 - `matchReason`: why this record answers the query.
 - `source.threadId`: the real Codex task ID.
@@ -184,7 +185,7 @@ Do not infer `continuation` from chronology, a shared document URL, similar titl
 - The snapshot embeds the graph payload, widget UI, and product mark so it can be reopened without the plugin source directory.
 - Test fixtures under `examples/` keep stable filenames and are not part of the snapshot archive.
 - Use `snapshotTitle` only when the user requests a different human-readable snapshot name.
-- Use `saveSnapshot: false` only for probes, ephemeral previews, or an explicit user request not to retain the result.
+- Tool searches save snapshots by default. Interactive dashboard queries and pagination are ephemeral previews and set `saveSnapshot: false`; standalone exports retain snapshot behavior.
 
 ## Graph Quality
 
@@ -216,3 +217,13 @@ Support high-frequency continuation prompts without pretending that summaries ar
 - `Collect unresolved questions`: collect explicit open questions, TODOs, risks, and conflicting conclusions.
 
 Every returned item requires a source task ID and Turn ID when available. If evidence is insufficient, return the gap instead of generating a plausible project status.
+
+## Version 0.3 retrieval contract
+
+- Search accepts `cursor`, `after` (inclusive ISO timestamp), `before` (exclusive), `includeArchived`, and `includeExcluded`. An empty query browses recent records. Preserve the literal user query; a dashboard page filter does not search the index.
+- Check `coverage.partial`, failed files, unsupported files, and malformed lines before claiming a search is complete. JSONL compression formats are currently reported as unsupported.
+- A result longer than the preview limit carries `truncated`/`contentTruncated`. Use `read_memory_record` with exact `cwd`, `recordId`, and `contentHash`; follow `nextOffset` until null for a complete original. Never describe a truncated preview as a full answer.
+- `read_memory_record` verifies source content and can return up to two adjacent turns. If the source is gone or changed, report the failure rather than labelling cached text verified.
+- `incorrect` feedback applies before Top K only to the same project/query. `cleared` removes that feedback. Source history remains discoverable through other queries.
+- Reviews accept `expectedRevision`; stale updates fail. Corrections require replacement content; supersession requires a confirmed replacement in the same project and must not form a cycle. Reviews preserve history.
+- Confirming an extraction is distinct from verifying whether the historical decision still applies. Rejected/superseded memories do not enter a continuation by default. Preview continuation materials, retain source references, and check current constraints.

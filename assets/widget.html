@@ -1583,279 +1583,220 @@
       .detail.open { transform: translateY(0); }
     }
 
-    /* Evidence archive visual system: navigation, retrieval, and source reading each
-       have a distinct surface so that provenance remains the visual priority. */
+    /* Muse-inspired surface language: quiet white space, rounded controls,
+       readable activity, and a restrained blue for the next action. */
     :root {
-      --bg: #eaf0f5;
+      --bg: #f7f8fa;
       --panel: #ffffff;
-      --panel-2: #f4f7fa;
-      --ink: #15243a;
-      --muted: #627189;
-      --faint: #8a98ab;
-      --line: #d9e1e9;
-      --line-strong: #bdc9d7;
-      --blue: #1976d2;
-      --blue-soft: #e4f2ff;
-      --green: #148d74;
-      --green-soft: #e4f6f0;
-      --amber: #c17020;
-      --amber-soft: #fff1df;
-      --pink: #b04b77;
-      --pink-soft: #fce9f1;
-      --shadow: 0 12px 28px rgba(22, 40, 63, 0.09);
-      --shadow-strong: 0 22px 44px rgba(22, 40, 63, 0.15);
-      --nav: #12233a;
-      --nav-2: #1a304c;
-      --nav-ink: #edf5ff;
-      --nav-muted: #9bb0c9;
+      --panel-2: #f5f6f8;
+      --ink: #17191d;
+      --muted: #626971;
+      --faint: #8b929a;
+      --line: #e4e7ea;
+      --line-strong: #cbd1d8;
+      --blue: #2863bf;
+      --blue-soft: #edf3ff;
+      --green: #27865b;
+      --green-soft: #e8f6ed;
+      --amber: #a76a25;
+      --amber-soft: #fff5e6;
+      --pink: #ac537c;
+      --pink-soft: #fbeaf2;
+      --shadow: 0 6px 20px rgba(32, 43, 59, .055);
+      --shadow-strong: 0 20px 60px rgba(20, 32, 48, .16);
       --node-w: 276px;
       --node-h: 148px;
       --detail-width: 432px;
     }
 
-    html, body {
-      background: var(--bg);
-      font-family: "IBM Plex Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    }
-
-    .app {
-      grid-template:
-        "header header header" 64px
-        "rail canvas detail" minmax(0, 1fr)
-        / 272px minmax(460px, 1fr) var(--detail-width);
-    }
-
-    .header {
-      grid-template-columns: 256px minmax(320px, 680px) minmax(300px, 1fr);
-      gap: 20px;
-      padding: 0 22px;
-      background: rgba(255, 255, 255, 0.94);
-      border-bottom-color: #d8e2eb;
-      box-shadow: 0 1px 0 rgba(15, 32, 51, 0.03);
-      backdrop-filter: blur(16px);
-    }
-
+    html, body { background: var(--bg); font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .app { grid-template: "header header header" 64px "rail canvas detail" minmax(0, 1fr) / 272px minmax(460px, 1fr) var(--detail-width); }
+    .header { grid-template-columns: 256px minmax(240px, 1fr) max-content; gap: 18px; padding: 0 20px; background: #fff; border-bottom-color: var(--line); }
     .brand { gap: 10px; }
-    .brand-mark {
-      width: 34px;
-      height: 34px;
-      border: 1px solid #cbd8e5;
-      border-radius: 10px;
-      background: #f4f9ff;
-      box-shadow: 0 4px 10px rgba(24, 70, 113, 0.12);
-    }
-    .brand-mark img { transform: scale(1.5); }
-    .brand h1 { font-size: 16px; letter-spacing: -0.02em; }
-    .brand p { font-size: 10px; letter-spacing: 0.01em; }
-
-    .search {
-      height: 40px;
-      padding: 0 13px;
-      border-color: #d4dfe9;
-      border-radius: 12px;
-      background: #f4f7fa;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
-    }
-    .search:focus-within {
-      border-color: var(--blue);
-      background: #fff;
-      box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.12);
-    }
+    .brand-mark { width: 38px; height: 38px; border: 1px solid #dfe8f6; border-radius: 13px; background: #f4f8ff; }
+    .brand-mark img { object-fit: contain; transform: scale(1.16); }
+    .brand h1 { font-size: 16px; font-weight: 760; letter-spacing: -.025em; }
+    .brand p { margin-top: 2px; font-size: 11px; }
+    .search { height: 40px; padding: 0 14px; border-color: var(--line); border-radius: 999px; background: #f6f7f9; }
+    .search:focus-within { border-color: #aac5f1; background: #fff; box-shadow: 0 0 0 3px rgba(40, 99, 191, .11); }
     .search span { color: var(--blue); font-size: 18px; }
     .search input { font-size: 13px; }
-    .header-actions { gap: 6px; }
-    .header-metrics { gap: 0; margin-right: 6px; }
-    .metric { padding: 0 10px; font-size: 10px; }
+    .header-actions { gap: 5px; }
+    .header-metrics { margin-right: 7px; }
+    .metric { padding: 0 9px; font-size: 10px; }
     .metric strong { color: var(--blue); }
-    .icon-button {
-      width: 36px;
-      height: 36px;
-      border-color: transparent;
-      border-radius: 10px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .icon-button:hover { border-color: #c8d7e6; color: var(--blue); background: #edf6ff; }
-    #languageButton { font-size: 11px; font-weight: 800; letter-spacing: 0.03em; }
+    .icon-button { width: 36px; height: 36px; border-radius: 50%; color: var(--muted); font-size: 14px; }
+    .icon-button:hover { border-color: #dbe4f1; color: var(--blue); background: var(--blue-soft); }
+    #languageButton { font-size: 11px; font-weight: 760; }
 
-    .rail {
-      padding: 20px 14px 26px;
-      color: var(--nav-ink);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.035), transparent 34%),
-        var(--nav);
-      border-right: 0;
-    }
-    .section-label { margin: 5px 10px 10px; color: var(--nav-muted); font-size: 9px; letter-spacing: 0.12em; }
-    .filter-list { gap: 5px; margin-bottom: 24px; }
-    .filter {
-      min-height: 36px;
-      height: auto;
-      padding: 8px 10px;
-      border: 1px solid transparent;
-      border-radius: 9px;
-      color: #c3d2e2;
-      transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
-    }
-    .filter:hover { color: #fff; background: rgba(255,255,255,0.075); }
-    .filter.active { color: #fff; background: linear-gradient(90deg, #1f75ba, #24649e); border-color: rgba(173, 220, 255, 0.22); box-shadow: 0 6px 16px rgba(0,0,0,0.16); }
-    .filter.project-row { min-height: 44px; color: #fff; background: rgba(255,255,255,0.075); font-weight: 720; }
-    .filter.project-row.active { background: linear-gradient(90deg, #1f75ba, #24649e); }
-    .filter.task-row { padding-left: 18px; }
-    .filter .count { color: var(--nav-muted); }
-    .filter.active .count { color: #d7efff; }
-    .folder-icon::before { background: var(--nav); }
-    .rail-group { margin-bottom: 18px; padding: 12px 0; border-color: rgba(174, 202, 231, 0.16); }
-    .rail-group + .rail-group { margin-top: -19px; }
-    .legend { gap: 10px; padding: 5px 10px; color: var(--nav-muted); font-size: 10px; }
-    .edge-sample { border-color: #6682a2; }
-    .stats { margin: 18px 2px 0; padding: 14px 10px 0; border-color: rgba(174, 202, 231, 0.18); color: var(--nav-muted); font-size: 10px; }
-    .stats strong { color: #f3f8ff; }
+    .rail { padding: 24px 13px 26px; color: var(--ink); background: #fff; border-right: 1px solid var(--line); }
+    .section-label { margin: 2px 12px 12px; color: var(--faint); font-size: 11px; font-weight: 670; text-transform: none; letter-spacing: 0; }
+    .filter-list { gap: 3px; margin-bottom: 27px; }
+    .filter { min-height: 38px; height: auto; padding: 8px 11px; border: 1px solid transparent; border-radius: 12px; color: #444c56; }
+    .filter:hover { color: var(--ink); background: #f5f7fa; }
+    .filter.active { color: #245db4; border-color: #e1ebfb; background: var(--blue-soft); }
+    .filter.project-row { min-height: 46px; color: var(--ink); background: #f5f6f8; }
+    .filter.project-row.active { color: #245db4; background: var(--blue-soft); }
+    .filter.task-row { padding-left: 19px; }
+    .filter .name { font-size: 12px; font-weight: 610; }
+    .filter .count { color: var(--faint); }
+    .filter.active .count { color: var(--blue); }
+    .folder-icon::before { background: #f5f6f8; }
+    .filter.project-row.active .folder-icon::before { background: var(--blue-soft); }
+    .rail-group { margin-bottom: 19px; padding: 15px 0; border-color: var(--line); }
+    .rail-group + .rail-group { margin-top: -20px; }
+    .legend { gap: 10px; padding: 5px 12px; color: var(--muted); font-size: 10.5px; line-height: 1.45; }
+    .edge-sample { border-color: #a3adb9; }
+    .stats { margin: 16px 2px 0; padding: 16px 12px 0; border-color: var(--line); color: var(--muted); font-size: 10.5px; }
+    .stats strong { color: var(--ink); }
 
-    .canvas-shell {
-      background-color: #edf3f7;
-      background-image:
-        linear-gradient(rgba(164, 184, 202, 0.16) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(164, 184, 202, 0.16) 1px, transparent 1px);
-      background-size: 28px 28px;
-    }
-    .canvas-shell::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: radial-gradient(circle at 44% 30%, rgba(255,255,255,0.88), transparent 46%);
-    }
-    .canvas-shell.results-mode { background: #eef3f7; }
-    .view-switcher, .layer-controls, .canvas-toolbar, .result-pill {
-      border-color: #c9d7e4;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.9);
-      box-shadow: 0 10px 22px rgba(36, 57, 80, 0.1);
-      backdrop-filter: blur(14px);
-    }
-    .view-switcher { left: 20px; top: 18px; padding: 4px; }
-    .view-button { min-width: 74px; height: 30px; border-radius: 8px; font-size: 11px; }
-    .view-button.active { color: #fff; background: linear-gradient(135deg, #2389db, #1762b0); box-shadow: 0 4px 10px rgba(21, 102, 182, 0.22); }
-    .layer-controls { left: 20px; top: 18px; padding: 4px; }
-    .layer-control { min-height: 30px; padding: 6px 10px; border-radius: 8px; font-size: 10px; }
-    .layer-control.active { color: var(--blue); background: #e7f3ff; }
+    .canvas-shell { background-color: #f8f9fb; background-image: radial-gradient(#dfe4ea .65px, transparent .65px); background-size: 24px 24px; }
+    .canvas-shell.results-mode { background: #f8f9fb; }
+    .canvas-shell.results-mode .layer-controls,
+    .canvas-shell.results-mode .canvas-toolbar { display: none; }
+    .view-switcher, .layer-controls, .canvas-toolbar, .result-pill { border-color: var(--line); border-radius: 999px; background: rgba(255,255,255,.97); box-shadow: var(--shadow); }
+    .view-switcher { top: 18px; left: 20px; padding: 4px; }
+    .view-button { min-width: 73px; height: 31px; border-radius: 999px; font-size: 11px; }
+    .view-button.active { color: #fff; background: var(--blue); }
+    .layer-controls { top: 66px; left: 20px; padding: 4px; }
+    .layer-control { min-height: 30px; border-radius: 999px; font-size: 10px; }
+    .layer-control.active { color: var(--blue); background: var(--blue-soft); }
     .canvas-toolbar { right: 18px; bottom: 18px; padding: 4px; }
-    .canvas-toolbar .icon-button { width: 34px; height: 32px; }
-    .result-pill { left: 18px; bottom: 18px; padding: 8px 12px; color: #52657b; font-size: 10px; }
-
-    .result-view { inset: 62px 0 0; padding: 34px clamp(26px, 5vw, 72px) 58px; background: transparent; }
-    .result-view-inner { width: min(880px, 100%); }
+    .result-pill { left: 18px; bottom: 18px; padding: 8px 13px; color: var(--muted); }
+    .result-view { inset: 63px 0 0; padding: 34px clamp(24px, 4vw, 62px) 58px; background: transparent; }
+    .result-view-inner { width: min(900px, 100%); }
     .result-view-head { margin-bottom: 22px; }
-    .result-view-head h2 { font-size: 24px; letter-spacing: -0.035em; }
-    .result-view-head p { max-width: 590px; font-size: 12px; line-height: 1.7; }
-    .recall-actions { gap: 10px; margin-bottom: 22px; }
-    .recall-action {
-      min-height: 76px;
-      padding: 13px 14px;
-      border-color: #d8e2eb;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.88);
-      box-shadow: 0 5px 16px rgba(39, 60, 84, 0.045);
-      font-size: 12px;
-      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-    }
-    .recall-action span { margin-top: 6px; font-size: 10px; line-height: 1.5; }
-    .recall-action:hover { border-color: #91c6ef; background: #fafdff; box-shadow: 0 12px 24px rgba(34, 103, 165, 0.1); transform: translateY(-2px); }
-    .result-list { gap: 10px; }
-    .result-card {
-      grid-template-columns: 38px minmax(0, 1fr) auto;
-      gap: 13px;
-      padding: 15px 16px;
-      border-color: #d7e2eb;
-      border-radius: 13px;
-      background: rgba(255,255,255,0.94);
-      box-shadow: 0 5px 16px rgba(35, 58, 84, 0.045);
-      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-    }
-    .result-card:hover, .result-card.active { border-color: #8ac0eb; box-shadow: 0 14px 28px rgba(31, 93, 150, 0.12); transform: translateY(-2px); }
-    .result-card.active { background: linear-gradient(110deg, #fff, #f1f8ff); }
-    .result-rank { width: 30px; height: 30px; border-radius: 10px; color: #1762aa; background: #e0f0ff; font-size: 10px; }
-    .result-source { color: #5e7691; font-size: 10px; }
-    .result-card-title { font-size: 14px; letter-spacing: -0.01em; }
-    .result-excerpt { font-size: 11px; line-height: 1.65; }
-    .result-score { padding: 4px 7px; border-radius: 999px; font-size: 9px; }
-    mark { border-radius: 3px; background: #ffe6a9; }
+    .result-view-head h2 { font-size: 27px; font-weight: 730; letter-spacing: -.04em; }
+    .result-view-head p { max-width: 590px; font-size: 12px; line-height: 1.65; }
+    .result-companion { position: relative; width: 94px; height: 82px; flex: 0 0 94px; overflow: hidden; align-self: center; border-radius: 24px; background: #eef5ff; }
+    .result-companion::after { position: absolute; right: -14px; bottom: -30px; width: 92px; height: 56px; border: 1px solid rgba(40,99,191,.12); border-radius: 50%; content: ""; }
+    .result-companion img { position: relative; z-index: 1; display: block; width: 100%; height: 100%; object-fit: contain; transform: translateY(7px) scale(1.1); }
+    .recall-actions { display: flex; gap: 0; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--line); border-radius: 18px; background: #fff; }
+    .recall-action { flex: 1 1 0; min-width: 0; min-height: 78px; padding: 14px 16px; border: 0; border-right: 1px solid var(--line); border-radius: 0; background: transparent; box-shadow: none; font-size: 12px; font-weight: 500; transition: background 130ms ease; }
+    .recall-action:last-child { border-right: 0; }
+    .recall-action strong { display: block; font-size: 12px; font-weight: 680; }
+    .recall-action span { margin-top: 6px; font-size: 10px; line-height: 1.45; }
+    .recall-action:hover { border-color: var(--line); background: #f5f8ff; }
+    .result-list { gap: 9px; }
+    .result-card { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 13px; padding: 16px 17px; border-color: var(--line); border-radius: 17px; background: #fff; box-shadow: none; transition: border-color 130ms ease, box-shadow 130ms ease; }
+    .result-card:hover, .result-card.active { border-color: #a6c2ee; box-shadow: var(--shadow); }
+    .result-card.active { background: #fbfdff; box-shadow: 0 0 0 2px rgba(40,99,191,.08); }
+    .result-rank { width: 28px; height: 28px; border-radius: 50%; color: var(--blue); background: var(--blue-soft); }
+    .result-source { color: var(--muted); font-size: 10px; }
+    .result-card-title { font-size: 14px; line-height: 1.45; }
+    .result-excerpt { font-size: 11px; line-height: 1.6; }
+    .result-source, .result-card-title, .result-excerpt { display: block; }
+    .result-score { border-radius: 999px; }
+    mark { background: #fff0c7; }
 
-    .edge { stroke: #9dafc1; stroke-width: 1.65; }
-    .edge.membership { stroke: #93a8bc; }
-    .edge.fork { stroke: #7e64c9; }
-    .edge.continuation { stroke: #2585d4; }
-    .edge.shared-prefix { stroke: #1a9a7f; }
-    .edge-label { fill: #556a81; stroke: #edf3f7; font-size: 9px; }
-    .node {
-      padding: 15px 16px;
-      border: 1px solid #c7d4e0;
-      border-top: 4px solid var(--accent, #6c87a5);
-      border-radius: 15px;
-      background: rgba(255,255,255,0.96);
-      box-shadow: 0 10px 22px rgba(31, 55, 80, 0.09);
-    }
-    .node:hover { border-color: #8eabc6; box-shadow: 0 17px 30px rgba(31, 61, 91, 0.14); transform: translateY(-3px); }
-    .node.project-node { border-color: #75addf; border-top-color: #1976d2; background: linear-gradient(145deg, #f9fcff, #eaf5ff); }
-    .node.task-node { border-top-color: var(--accent, #597997); }
-    .node.has-record-match { border-color: #dfb97f; border-top-color: var(--amber); box-shadow: 0 10px 22px rgba(148, 92, 28, 0.12); }
-    .node.selected, .node.has-record-match.selected { border-color: #1f81d0; border-top-color: #1f81d0; background: #fff; box-shadow: 0 0 0 4px rgba(31, 129, 208, 0.14), 0 18px 34px rgba(26, 85, 138, 0.18); }
-    .node-head { margin-bottom: 10px; }
-    .kind { font-size: 9px; letter-spacing: 0.08em; }
-    .node-title { margin-bottom: 8px; font-size: 14px; letter-spacing: -0.015em; line-height: 1.42; }
-    .node-summary { font-size: 11px; line-height: 1.58; }
-    .node-related-count { left: 16px; bottom: 12px; border-radius: 999px; background: #f5f8fb; font-size: 8px; }
-    .node-match-rank { right: 16px; bottom: 13px; color: #6b8199; }
-    .status-dot.active { box-shadow: 0 0 0 3px #d8f2e9; }
+    .edge { stroke: #a9b6c6; stroke-width: 1.7; }
+    .edge.membership { stroke: #b1bdc9; }
+    .edge.fork { stroke: #896cb6; }
+    .edge.continuation { stroke: var(--blue); }
+    .edge.shared-prefix { stroke: var(--green); }
+    .edge-label { fill: #697481; stroke: #f8f9fb; font-size: 9px; }
+    .node { padding: 15px 17px; border: 1px solid #e0e5eb; border-top: 1px solid #e0e5eb; border-radius: 18px; background: #fff; box-shadow: 0 7px 22px rgba(32,43,59,.075); }
+    .node:hover { border-color: #bacbe6; box-shadow: 0 11px 27px rgba(32,43,59,.11); transform: none; }
+    .node.project-node { border-color: #bbd1f1; border-top-color: #bbd1f1; background: #f8fbff; }
+    .node.task-node { border-top-color: #e0e5eb; }
+    .node.has-record-match { border-color: #e4cba5; border-top-color: #e4cba5; }
+    .node.selected, .node.has-record-match.selected { border: 2px solid var(--blue); background: #fff; box-shadow: 0 0 0 3px rgba(40,99,191,.1), 0 9px 24px rgba(32,43,59,.09); }
+    .kind { font-size: 10px; text-transform: none; }
+    .node-title { font-size: 14px; line-height: 1.42; }
+    .node-summary { font-size: 11px; line-height: 1.55; }
+    .node-related-count { border-radius: 999px; }
 
-    .detail {
-      padding: 0 26px 36px;
-      background: #fffdf9;
-      border-left: 1px solid #d5dfe8;
-      box-shadow: -10px 0 26px rgba(35, 55, 80, 0.045);
-    }
-    .detail-resizer { top: 64px; right: calc(var(--detail-width) - 6px); }
-    .detail-switch { min-height: 66px; gap: 24px; margin: 0 -26px; padding: 0 26px; background: rgba(255,253,249,0.94); border-bottom-color: #dbe3ea; backdrop-filter: blur(12px); }
+    .detail { padding: 0 25px 36px; background: #fff; border-left-color: var(--line); box-shadow: none; }
+    .detail-mobile-header { display: none; }
+    .detail-resizer { top: 64px; }
+    .detail-switch { min-height: 64px; gap: 22px; margin: 0 -25px; padding: 0 25px; background: rgba(255,255,255,.97); }
     .detail-switch-button { font-size: 13px; }
-    .detail-kind { margin-top: 26px; color: #287abb; font-size: 10px; letter-spacing: 0.1em; }
-    .detail h2 { font-size: 24px; letter-spacing: -0.035em; }
-    .detail-summary { font-size: 13px; line-height: 1.75; }
-    .record-label { font-size: 10px; letter-spacing: 0.07em; }
-    .record-prompt, .record-content { border-color: #d8e1e8; border-radius: 10px; font-size: 13px; line-height: 1.8; }
-    .record-prompt { border-left-color: #2686d3; background: #f0f7fd; }
+    .detail-kind { margin-top: 25px; font-size: 10px; text-transform: none; }
+    .detail h2 { font-size: 24px; letter-spacing: -.035em; }
+    .detail-summary { font-size: 13px; line-height: 1.7; }
+    .record-label { font-size: 11px; text-transform: none; }
+    .record-prompt, .record-content { border-color: var(--line); border-radius: 15px; font-size: 13px; line-height: 1.75; }
+    .record-prompt { border-left: 1px solid var(--line); background: #f7f8fa; }
     .record-content { background: #fff; }
-    .match-reason { border-radius: 0 10px 10px 0; background: #fff8ed; }
-    .evidence-panel { border-color: #edcc97; border-radius: 11px; }
-    .feedback-row, .memory-review, .graph-guide { border-color: #d8e1e8; border-radius: 11px; }
-    .content-tab { border-radius: 9px; }
-    .meta { border-color: #e0e6ec; }
-    .action { min-height: 42px; border-radius: 10px; }
-    .action.primary { border-color: #1764aa; background: linear-gradient(135deg, #268ad9, #1764aa); box-shadow: 0 8px 16px rgba(29, 111, 184, 0.2); }
-    .action.continue { border-color: #b8d9f4; }
-    .toast { border-radius: 12px; box-shadow: var(--shadow-strong); }
+    .match-reason { border-left-color: #d6a15e; border-radius: 12px; background: #fff9ee; }
+    .evidence-panel { border-color: #e9d9bc; border-radius: 15px; background: #fffaf1; }
+    .feedback-row, .memory-review, .graph-guide { border-radius: 15px; }
+    .content-tab { min-height: 44px; border-radius: 12px; }
+    .action { min-height: 42px; border-radius: 999px; }
+    .action.primary { border-color: var(--blue); background: var(--blue); box-shadow: none; }
+    .action.continue { border-color: #d4e2f7; }
+    .toast { border-radius: 999px; }
+
+    .language-onboarding[hidden] { display: none; }
+    .language-onboarding { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(28,34,48,.48); backdrop-filter: blur(5px); }
+    .language-dialog { width: min(560px, 100%); padding: 24px; border: 1px solid var(--line); border-radius: 28px; background: #fff; box-shadow: var(--shadow-strong); }
+    .language-dialog-hero { position: relative; height: 146px; overflow: hidden; border: 1px solid #dfe9f8; border-radius: 21px; background: #f1f6ff; }
+    .language-dialog-hero::before { position: absolute; right: -72px; bottom: -88px; width: 310px; height: 190px; border: 1px solid rgba(40,99,191,.13); border-radius: 50%; content: ""; }
+    .language-dialog-mark { position: absolute; top: 17px; left: 17px; width: 42px; height: 42px; overflow: hidden; border: 1px solid #dce6f5; border-radius: 14px; background: #fff; }
+    .language-dialog-mark img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.5); }
+    .language-dialog-mascot { position: absolute; z-index: 1; right: 33px; bottom: -33px; width: 185px; height: 185px; object-fit: contain; }
+    .language-dialog-hero-copy { position: absolute; left: 18px; bottom: 19px; width: 230px; color: #24579e; font-size: 12px; font-weight: 650; line-height: 1.45; }
+    .language-dialog-hero-copy span { display: block; }
+    .language-dialog-hero-copy span + span { margin-top: 3px; color: #7186a2; font-size: 10px; font-weight: 560; }
+    .language-dialog-kicker { margin: 20px 0 8px; color: var(--blue); font-size: 12px; font-weight: 720; }
+    .language-dialog h2 { margin: 0; color: var(--ink); font-size: 27px; line-height: 1.23; letter-spacing: -.03em; }
+    .language-dialog h2 span { color: var(--muted); font-size: 19px; font-weight: 560; }
+    .language-dialog > p:last-of-type { margin: 15px 0 24px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+    .language-dialog > p:last-of-type span { display: block; }
+    .language-choices { display: grid; gap: 9px; }
+    .language-choice { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; width: 100%; min-height: 68px; padding: 13px 17px; border: 1px solid var(--line); border-radius: 17px; background: #fff; cursor: pointer; text-align: left; }
+    .language-choice:hover, .language-choice:focus-visible { border-color: #aac5f1; background: #f7faff; }
+    .language-choice-name { font-size: 15px; font-weight: 700; }
+    .language-choice-note { grid-column: 1; color: var(--muted); font-size: 11px; }
+    .language-choice-arrow { grid-column: 2; grid-row: 1 / span 2; color: var(--blue); font-size: 20px; }
 
     @media (max-width: 900px) {
       .app { grid-template: "header header" 64px "canvas detail" minmax(0, 1fr) / minmax(340px, 1fr) var(--detail-width); }
       .header { grid-template-columns: 190px minmax(240px, 1fr) auto; }
     }
-
     @media (max-width: 650px) {
       .app { grid-template: "header" 112px "canvas" minmax(0, 1fr) / 1fr; }
       .header { grid-template-columns: 1fr auto; grid-template-rows: 56px 48px; padding: 0 14px; }
-      .search { height: 38px; }
-      .result-view { inset: 58px 0 0; padding: 24px 14px 112px; }
-      .result-view-head h2 { font-size: 21px; }
-      .detail { left: 10px; right: 10px; bottom: 10px; padding-left: 18px; padding-right: 18px; border-radius: 14px; }
+      .search { height: 39px; }
+      .result-view { inset: 58px 0 0; padding: 22px 14px 112px; }
+      .result-view-head h2 { font-size: 23px; }
+      .recall-actions { display: grid; }
+      .recall-action { min-height: 62px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .recall-action:last-child { border-bottom: 0; }
+      .detail { left: 10px; right: 10px; bottom: 10px; padding-left: 18px; padding-right: 18px; border-radius: 20px; }
+      .detail-mobile-header { position: relative; display: flex; justify-content: flex-end; align-items: center; height: 42px; margin: 0 -18px; padding: 0 15px; border-bottom: 1px solid var(--line); }
+      .detail-mobile-header::before { position: absolute; top: 9px; left: calc(50% - 19px); width: 38px; height: 4px; border-radius: 999px; background: #d9dde3; content: ""; }
+      .detail-close { display: grid; place-items: center; width: 29px; height: 29px; padding: 0; border: 0; border-radius: 50%; color: var(--muted); background: var(--panel-2); cursor: pointer; font-size: 20px; line-height: 1; }
+      .detail-close:hover { color: var(--ink); background: #e9ecf1; }
       .detail-switch { margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; }
+      .language-dialog { padding: 24px; }
+      .language-dialog-hero { height: 128px; }
+      .language-dialog-mascot { right: 14px; width: 156px; height: 156px; }
+      .language-dialog-hero-copy { top: 17px; bottom: auto; left: 70px; width: 150px; font-size: 11px; }
+      .result-companion { width: 72px; height: 68px; flex-basis: 72px; }
     }
+    #detailTitle { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; cursor:pointer; }
+    #detailTitle.expanded { display:block; }
+    @media (min-width:901px) { #searchOptionsToggle { display:none; } }
+    @media (max-width:900px) { .app.search-open .rail { display:block; position:absolute; z-index:30; top:56px; bottom:0; left:0; width:264px; box-shadow:var(--shadow); } }
+    @media (max-width:650px) { .app.search-open .rail { top:102px; } }
+    .search-controls { display:grid; gap:8px; padding-bottom:18px; margin-bottom:14px; border-bottom:1px solid var(--line); }
+    .search-controls label { display:flex; gap:6px; align-items:center; flex-wrap:wrap; color:var(--muted); font-size:12px; }
+    .search-controls input[type="text"], .search-controls input[type="date"] { width:100%; min-width:0; padding:6px; border:1px solid var(--line); border-radius:5px; background:var(--panel); color:var(--ink); }
+    .search-controls p, #sourceReadStatus { font-size:12px; color:var(--muted); white-space:pre-wrap; overflow-wrap:anywhere; }
+    .page-controls { display:flex; align-items:center; justify-content:center; gap:12px; padding:16px; }
+    .memory-edit-fields { display:grid; gap:8px; margin:10px 0; }
+    .memory-edit-fields input, .memory-edit-fields textarea { width:100%; box-sizing:border-box; padding:8px; border:1px solid var(--line); border-radius:5px; background:var(--panel); color:var(--ink); }
+    #reviewHistoryText { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; }
+    #continuePreview { width:min(700px,90vw); max-height:85vh; border:1px solid var(--line); border-radius:12px; padding:20px; background:var(--panel); color:var(--ink); }
+    #continuePreview textarea { box-sizing:border-box; width:100%; height:45vh; margin:12px 0; font:12px/1.6 monospace; }
   </style>
 </head>
 <body>
   <div class="app">
     <header class="header">
       <div class="brand">
-        <div class="brand-mark"><img src="./memorygraph-mark.png" alt="" /></div>
+        <div class="brand-mark"><img src="./memorygraph-mascot.png" alt="" /></div>
         <div class="brand-copy">
           <h1 id="graphTitle">MemoryGraph</h1>
           <p id="graphScope">当前项目</p>
@@ -1868,6 +1809,7 @@
       </label>
       <div class="header-actions">
         <div class="header-metrics" id="headerMetrics"></div>
+        <button class="icon-button" id="searchOptionsToggle" aria-label="Search filters" aria-expanded="false">☷</button>
         <button class="icon-button" id="languageButton" title="切换为英文" aria-label="切换界面语言">EN</button>
         <button class="icon-button" id="refreshButton" title="请 Codex 刷新图谱" aria-label="刷新">↻</button>
         <button class="icon-button" id="fullscreenButton" title="全屏" aria-label="全屏">⛶</button>
@@ -1875,6 +1817,16 @@
     </header>
 
     <aside class="rail">
+      <form id="searchControls" class="search-controls">
+        <label><span data-i18n="searchScope">项目目录</span><input id="scopeInput" aria-label="Project directory" type="text" /></label>
+        <label><span data-i18n="afterDate">起始日期</span><input id="afterDate" aria-label="After date" type="date" /></label>
+        <label><span data-i18n="beforeDate">结束日期（含）</span><input id="beforeDate" aria-label="Through date" type="date" /></label>
+        <label><input id="includeArchived" type="checkbox" checked /><span data-i18n="searchArchived">包含归档</span></label>
+        <label><input id="includeExcluded" type="checkbox" /><span data-i18n="showExcluded">显示本查询排除的结果</span></label>
+        <label><input id="filterLoaded" type="checkbox" /><span data-i18n="filterLoaded">仅筛选本页结果</span></label>
+        <button class="action primary" type="submit" id="searchHistory" data-i18n="searchAll">搜索历史</button>
+        <p id="searchStatus" role="status" aria-live="polite"></p>
+      </form>
       <div class="section-label" data-i18n="projectStructure">项目结构</div>
       <div class="filter-list" id="clusterFilters"></div>
 
@@ -1910,22 +1862,24 @@
               <h2 id="resultViewTitle">已找到来源记录</h2>
               <p id="resultViewSummary">先核验来源记录，再通过图谱了解任务关系。</p>
             </div>
+            <div class="result-companion" aria-hidden="true"><img src="./memorygraph-mascot.png" alt="" /></div>
           </div>
           <div class="recall-actions" aria-label="继续项目工作">
             <button class="recall-action" data-recall-action="resume">
-              继续最近工作
+              <strong>继续最近工作</strong>
               <span>查找近期任务、结论和下一步</span>
             </button>
             <button class="recall-action" data-recall-action="decisions">
-              汇总近期决策
+              <strong>汇总近期决策</strong>
               <span>仅返回有来源依据的项目决策</span>
             </button>
             <button class="recall-action" data-recall-action="open-questions">
-              收集未解决问题
+              <strong>收集未解决问题</strong>
               <span>查找仍待确认的事项</span>
             </button>
           </div>
           <div class="result-list" id="resultList"></div>
+          <div class="page-controls"><button id="previousPage" class="action" data-i18n="previousPage">上一页</button><span id="pageInfo"></span><button id="nextPage" class="action" data-i18n="nextPage">下一页</button></div>
         </div>
       </section>
       <div class="world" id="world">
@@ -1957,6 +1911,7 @@
       title="拖动调整检查器宽度；双击重置"></button>
 
     <aside class="detail" id="detail">
+      <div class="detail-mobile-header"><button class="detail-close" id="closeDetail" type="button" aria-label="关闭详情" title="关闭详情">×</button></div>
       <div class="empty-detail" id="emptyDetail"><div>选择任务以查看其来源记录、记忆候选、证据和上下文。</div></div>
       <div class="detail-content" id="detailContent" hidden>
         <div class="detail-switch" id="detailSwitch">
@@ -1984,6 +1939,7 @@
         <section class="feedback-row" id="feedbackRow" hidden>
           <div class="feedback-title" data-i18n="correctRecordQuestion">这是正确的记录吗？反馈仅保存在本机。</div>
           <div class="feedback-actions">
+            <button class="feedback-button" data-feedback="cleared" data-i18n="undoFeedback">撤销反馈</button>
             <button class="feedback-button correct" data-feedback="correct" data-i18n="correct">正确</button>
             <button class="feedback-button incorrect" data-feedback="incorrect" data-i18n="incorrect">不正确</button>
           </div>
@@ -1994,6 +1950,13 @@
             <button class="memory-review-button confirmed" data-memory-review="confirmed" data-i18n="confirmMemory">确认记忆</button>
             <button class="memory-review-button rejected" data-memory-review="rejected" data-i18n="reject">拒绝</button>
             <button class="memory-review-button candidate" data-memory-review="candidate" data-i18n="resetCandidate">重置为候选</button>
+          </div>
+          <div class="memory-edit-fields">
+            <textarea id="memoryCorrection" rows="3" aria-label="Corrected memory" placeholder="修正内容 / Corrected content"></textarea>
+            <input id="replacementMemory" type="text" aria-label="Replacement memory ID" placeholder="替代记忆 ID / Replacement memory ID" />
+            <input id="memoryReviewNote" type="text" aria-label="Review reason" placeholder="修改原因 / Review reason" />
+            <button class="memory-review-button" data-memory-review="corrected" data-i18n="correctMemory">保存纠正</button>
+            <button class="memory-review-button" data-memory-review="superseded" data-i18n="replaceMemory">标记已替代</button>
           </div>
           <div class="memory-review-state" id="memoryReviewState"></div>
         </section>
@@ -2043,6 +2006,9 @@
         </section>
         <div class="content-empty" id="contentEmpty" hidden></div>
         <section class="record-section" id="recordSection" hidden>
+          <p id="sourceReadStatus" role="status"></p>
+          <button class="action" id="loadRecord" data-i18n="readOriginal">核验并展开原文</button>
+          <details id="reviewHistory"><summary data-i18n="reviewHistory">审核历史</summary><pre id="reviewHistoryText"></pre></details>
           <div class="record-block" id="promptBlock" hidden>
             <div class="record-label" data-i18n="previousUserMessage">上一条用户消息</div>
             <div class="record-prompt" id="sourcePrompt"></div>
@@ -2078,7 +2044,29 @@
       </div>
     </aside>
   </div>
+  <dialog id="continuePreview"><strong data-i18n="continuePreview">核对即将带入的上下文</strong><label><input id="includeAdjacent" type="checkbox" /><span data-i18n="includeAdjacent">包含相邻问答</span></label><textarea id="continuePreviewText" readonly aria-label="Continuation context"></textarea><div class="detail-actions"><button id="sendContinuation" class="action primary" data-i18n="sendContext">发送到当前对话</button><button id="copyContinuation" class="action" data-i18n="copyContext">复制上下文</button><button id="closeContinuation" class="action" data-i18n="cancel">取消</button></div></dialog>
   <div class="toast" id="toast"></div>
+
+  <div class="language-onboarding" id="languageOnboarding" hidden>
+    <div class="language-dialog" role="dialog" aria-modal="true" aria-labelledby="languageTitle" aria-describedby="languageDescription">
+      <div class="language-dialog-hero" aria-hidden="true">
+        <div class="language-dialog-mark"><img src="./memorygraph-mark.png" alt="" /></div>
+        <div class="language-dialog-hero-copy"><span lang="zh-CN">把散落的对话，重新连成可追溯的记忆。</span><span lang="en">Reconnect past conversations into traceable memory.</span></div>
+        <img class="language-dialog-mascot" src="./memorygraph-mascot.png" alt="" />
+      </div>
+      <p class="language-dialog-kicker">MemoryGraph</p>
+      <h2 id="languageTitle">选择界面语言<br><span>Choose your language</span></h2>
+      <p id="languageDescription"><span lang="zh-CN">首次打开时请选择语言，之后仍可切换。</span><span lang="en">Choose a language now; you can change it later.</span></p>
+      <div class="language-choices" role="group" aria-label="选择语言 / Choose a language">
+        <button class="language-choice" type="button" data-select-language="zh-CN" lang="zh-CN">
+          <span class="language-choice-name">中文</span><span class="language-choice-note">简体中文界面</span><span class="language-choice-arrow" aria-hidden="true">→</span>
+        </button>
+        <button class="language-choice" type="button" data-select-language="en" lang="en">
+          <span class="language-choice-name">English</span><span class="language-choice-note">English dashboard</span><span class="language-choice-arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script>
     (() => {
@@ -2091,13 +2079,14 @@
           sharedPrefix: "共享对话前缀", similarContent: "内容相近，不代表先后关系",
           results: "结果", graph: "图谱", sourceRecords: "来源记录", memoryCandidates: "记忆候选",
           logs: "日志", matchEvidence: "匹配证据", correctRecordQuestion: "这是正确的记录吗？反馈仅保存在本机。",
+          includeAdjacent: "包含前后各一轮（长上下文标明截断）", searchAll: "搜索历史", searchScope: "项目目录（只搜索此目录）", afterDate: "起始日期", beforeDate: "结束日期（含）", searchArchived: "包含归档", showExcluded: "显示本查询排除的结果", filterLoaded: "仅筛选本页结果", previousPage: "上一页", nextPage: "下一页", undoFeedback: "撤销反馈", correctMemory: "保存纠正", replaceMemory: "标记已替代", readOriginal: "核验并展开原文", reviewHistory: "审核历史", continuePreview: "核对即将带入的上下文", sendContext: "发送到当前对话", copyContext: "复制上下文", cancel: "取消", lexicalMatch: "词法相关",
           correct: "正确", incorrect: "不正确", reviewMemory: "审核记忆候选", confirmMemory: "确认记忆",
           reject: "拒绝", resetCandidate: "重置为候选", relationshipGuide: "关系说明",
           previousUserMessage: "上一条用户消息", status: "状态", recordedAt: "记录时间", sourceTask: "来源任务",
           messageRole: "消息角色", logDeduplication: "日志去重", sourceCopies: "来源副本", memoryType: "记忆类型",
           memoryStatus: "记忆状态", extractionEvidence: "提取证据", extractionConfidence: "提取置信度",
           nodeId: "节点 ID", taskId: "任务 ID", turnId: "轮次 ID", workingDirectory: "工作目录", currentProject: "当前项目", searchPlaceholder: "搜索计划、决策、文件或关键词",
-          searchConversations: "搜索对话", switchToEnglish: "切换为英文", switchLanguage: "切换界面语言", refreshGraph: "请 Codex 刷新图谱",
+          searchConversations: "搜索对话", switchToEnglish: "切换为英文", switchToChinese: "切换为中文", switchLanguage: "切换界面语言", closeDetail: "关闭详情", refreshGraph: "请 Codex 刷新图谱",
           refresh: "刷新", fullscreen: "全屏", zoomOut: "缩小", fitCanvas: "适应画布", zoomIn: "放大",
           sourceRecordsFor: "“{query}”的来源记录", projectSourceRecords: "项目来源记录",
           recordsFound: "{count} 条记录 · 优先显示精确匹配和用户确认的结果",
@@ -2107,6 +2096,7 @@
           noSummary: "暂无摘要", matchedRecords: "匹配 {count} 条记录", noDirectMatch: "无直接匹配", relatedMessages: "与当前搜索相关的 {count} 条消息", top: "前 {rank}",
           project: "项目", task: "任务", decision: "决策", artifact: "产物", milestone: "里程碑",
           exactMatch: "精确匹配", semanticMatch: "语义匹配", user: "用户", ai: "AI", system: "系统",
+          active: "进行中", idle: "未开始", found: "已找到", accepted: "已接受", ready: "已就绪", unknown: "未知",
           fact: "事实", requirement: "需求", openQuestion: "开放问题", plan: "计划", definition: "定义", insight: "洞见",
           candidate: "候选（待审核）", corrected: "已修正", superseded: "已替代", rejected: "已拒绝",
           explicitStatement: "来源回答中的明确陈述", modelInference: "模型推断", createdManually: "由用户手动创建",
@@ -2131,13 +2121,14 @@
           sharedPrefix: "Shared conversation prefix", similarContent: "Similar content; no sequence implied",
           results: "Results", graph: "Graph", sourceRecords: "Source records", memoryCandidates: "Memory candidates",
           logs: "Logs", matchEvidence: "Match evidence", correctRecordQuestion: "Is this the correct record? Feedback stays local.",
+          includeAdjacent: "Include adjacent turns (long context is marked)", searchAll: "Search history", searchScope: "Project directory (exact scope)", afterDate: "From date", beforeDate: "Through date", searchArchived: "Include archived", showExcluded: "Include excluded results", filterLoaded: "Filter this page only", previousPage: "Previous", nextPage: "Next", undoFeedback: "Undo feedback", correctMemory: "Save correction", replaceMemory: "Mark superseded", readOriginal: "Verify and expand original", reviewHistory: "Review history", continuePreview: "Review continuation context", sendContext: "Send to current chat", copyContext: "Copy context", cancel: "Cancel", lexicalMatch: "Lexical match",
           correct: "Correct", incorrect: "Incorrect", reviewMemory: "Review memory candidate", confirmMemory: "Confirm memory",
           reject: "Reject", resetCandidate: "Reset to candidate", relationshipGuide: "Relationship guide",
           previousUserMessage: "Previous user message", status: "Status", recordedAt: "Recorded at", sourceTask: "Source task",
           messageRole: "Message role", logDeduplication: "Log deduplication", sourceCopies: "Source copies", memoryType: "Memory type",
           memoryStatus: "Memory status", extractionEvidence: "Extraction evidence", extractionConfidence: "Extraction confidence",
           nodeId: "Node ID", taskId: "Task ID", turnId: "Turn ID", workingDirectory: "Working directory", currentProject: "Current project", searchPlaceholder: "Search plans, decisions, files, or keywords",
-          searchConversations: "Search conversations", switchToEnglish: "Switch to English", switchLanguage: "Switch interface language", refreshGraph: "Ask Codex to refresh the graph",
+          searchConversations: "Search conversations", switchToEnglish: "Switch to English", switchToChinese: "Switch to Chinese", switchLanguage: "Switch interface language", closeDetail: "Close details", refreshGraph: "Ask Codex to refresh the graph",
           refresh: "Refresh", fullscreen: "Fullscreen", zoomOut: "Zoom out", fitCanvas: "Fit to canvas", zoomIn: "Zoom in",
           sourceRecordsFor: "Source records for “{query}”", projectSourceRecords: "Project source records",
           recordsFound: "{count} records · exact matches and user-confirmed results first",
@@ -2147,6 +2138,7 @@
           noSummary: "No summary", matchedRecords: "Matched {count} records", noDirectMatch: "No direct match", relatedMessages: "{count} messages related to the current search", top: "Top {rank}",
           project: "Project", task: "Task", decision: "Decision", artifact: "Artifact", milestone: "Milestone",
           exactMatch: "Exact match", semanticMatch: "Semantic match", user: "User", ai: "AI", system: "System",
+          active: "Active", idle: "Idle", found: "Found", accepted: "Accepted", ready: "Ready", unknown: "Unknown",
           fact: "Fact", requirement: "Requirement", openQuestion: "Open question", plan: "Plan", definition: "Definition", insight: "Insight",
           candidate: "Candidate (needs review)", corrected: "Corrected", superseded: "Superseded", rejected: "Rejected",
           explicitStatement: "Explicit statement in source answer", modelInference: "Model inference", createdManually: "Created manually by user",
@@ -2166,10 +2158,25 @@
           collectQuestions: "Collect unresolved questions", collectQuestionsHint: "Find items that still need confirmation"
         }
       };
-      // v2 intentionally ignores the previous English-first preference and restores Chinese as the default.
       const LANGUAGE_KEY = "memorygraph-language:v2";
+      const INSTALL_LOCALE_KEY = "memorygraph-install-locale:v1";
       function storedLocale() {
-        try { return localStorage.getItem(LANGUAGE_KEY) === "en" ? "en" : "zh-CN"; } catch { return "zh-CN"; }
+        try {
+          const saved = localStorage.getItem(LANGUAGE_KEY);
+          return saved === "en" || saved === "zh-CN" ? saved : null;
+        } catch { return null; }
+      }
+      function localeFromInstallation(graph) {
+        const configured = graph?.preferredLocale;
+        if (configured !== "en" && configured !== "zh-CN") return null;
+        try {
+          if (localStorage.getItem(INSTALL_LOCALE_KEY) !== configured) {
+            localStorage.setItem(INSTALL_LOCALE_KEY, configured);
+            localStorage.setItem(LANGUAGE_KEY, configured);
+            return configured;
+          }
+        } catch { return configured; }
+        return storedLocale() || configured;
       }
       function t(key, values = {}) {
         const template = translations[state?.locale || "zh-CN"]?.[key] || translations["zh-CN"][key] || key;
@@ -2331,7 +2338,8 @@
         project: t("project"), record: t("sourceRecords"), memory: t("memoryCandidates"),
         thread: t("task"), decision: t("decision"), artifact: t("artifact"), milestone: t("milestone")
       });
-      const matchLabels = () => ({ exact: t("exactMatch"), semantic: t("semanticMatch"), context: t("context") });
+      const matchLabels = () => ({ exact: t("exactMatch"), lexical: t("lexicalMatch"), semantic: t("semanticMatch"), context: t("context") });
+      const statusLabels = () => ({ active: t("active"), idle: t("idle"), found: t("found"), accepted: t("accepted"), ready: t("ready") });
       const roleLabels = () => ({ user: t("user"), assistant: t("ai"), system: t("system") });
       const memoryTypeLabels = () => ({
         decision: t("decision"), fact: t("fact"), requirement: t("requirement"),
@@ -2344,11 +2352,16 @@
       const evidenceTypeLabels = () => ({
         "explicit-statement": t("explicitStatement"), inferred: t("modelInference"), manual: t("createdManually")
       });
-      const NODE_WIDTH = 256;
-      const NODE_HEIGHT = 136;
+      const NODE_WIDTH = 276;
+      const NODE_HEIGHT = 148;
 
       const state = {
         graph: demoGraph,
+        requestSequence: 0,
+        activeRequest: "",
+        pageStack: [""],
+        pageIndex: 0,
+        pendingReview: false,
         positions: new Map(),
         selectedId: null,
         selectedContentId: null,
@@ -2359,11 +2372,11 @@
         dragging: false,
         dragStart: null,
         nodeDrag: null,
-        detailWidth: 410,
+        detailWidth: 432,
         detailResize: null,
         suppressClickId: null,
         visibleLayers: new Set(["task", "content"]),
-        locale: storedLocale()
+        locale: storedLocale() || "zh-CN"
       };
 
       const el = (id) => document.getElementById(id);
@@ -2377,12 +2390,19 @@
       let toastTimer = null;
 
       const DETAIL_WIDTH_KEY = "memorygraph-detail-width:v1";
-      const DETAIL_WIDTH_DEFAULT = 410;
+      const DETAIL_WIDTH_DEFAULT = 432;
       const DETAIL_WIDTH_MIN = 320;
       const DETAIL_WIDTH_MAX = 720;
 
+      function setDetailOpen(open) {
+        detail.classList.toggle("open", open);
+        const hiddenOnMobile = window.innerWidth <= 650 && !open;
+        detail.inert = hiddenOnMobile;
+        detail.setAttribute("aria-hidden", String(hiddenOnMobile));
+      }
+
       function detailWidthBounds() {
-        const railWidth = window.innerWidth <= 900 ? 0 : 264;
+        const railWidth = window.innerWidth <= 900 ? 0 : 272;
         const canvasMinimum = window.innerWidth <= 900 ? 340 : 460;
         const available = window.innerWidth - railWidth - canvasMinimum;
         return {
@@ -2430,8 +2450,13 @@
         el("searchInput").placeholder = t("searchPlaceholder");
         el("searchInput").setAttribute("aria-label", t("searchConversations"));
         el("languageButton").textContent = isEnglish ? "中" : "EN";
-        el("languageButton").title = isEnglish ? "切换为中文" : t("switchToEnglish");
-        el("languageButton").setAttribute("aria-label", t("switchLanguage"));
+        el("languageButton").title = isEnglish ? t("switchToChinese") : t("switchToEnglish");
+        el("languageButton").setAttribute("aria-label", isEnglish ? t("switchToChinese") : t("switchToEnglish"));
+        el("closeDetail").title = t("closeDetail");
+        el("closeDetail").setAttribute("aria-label", t("closeDetail"));
+        el("viewSwitcher").setAttribute("aria-label", isEnglish ? "Main view" : "主视图");
+        document.querySelector(".recall-actions").setAttribute("aria-label", isEnglish ? "Continue project work" : "继续项目工作");
+        document.querySelector(".layer-controls").setAttribute("aria-label", isEnglish ? "Graph layers" : "图谱图层");
         el("refreshButton").title = t("refreshGraph");
         el("refreshButton").setAttribute("aria-label", t("refresh"));
         el("fullscreenButton").title = t("fullscreen");
@@ -2456,7 +2481,7 @@
         };
         document.querySelectorAll(".recall-action").forEach((button) => {
           const [title, hint] = recall[button.dataset.recallAction] || [];
-          if (title) button.innerHTML = `${escapeHtml(t(title))}<span>${escapeHtml(t(hint))}</span>`;
+          if (title) button.innerHTML = `<strong>${escapeHtml(t(title))}</strong><span>${escapeHtml(t(hint))}</span>`;
         });
         const guideRows = isEnglish
           ? [
@@ -2709,7 +2734,7 @@
         if (!fallback) return null;
         return {
           location: `${record.matchType === "semantic" ? t("semanticEvidence") : t("sourceExcerpt")} · ${
-            Number.isFinite(Number(record.matchScore)) ? `${Math.round(Number(record.matchScore) * 100)}%` : t("needsVerification")
+            matchLabels()[record.matchType] || t("needsVerification")
           }`,
           text: excerptAround(fallback, ""),
           query: "",
@@ -2721,6 +2746,7 @@
         return state.graph.nodes
           .filter((node) => node.kind === "record" && (!query || nodeHasQueryMatch(node, query)))
           .sort((a, b) => {
+            if (a.rank && b.rank) return a.rank - b.rank;
             const feedback = Number(b.userFeedback === "correct") - Number(a.userFeedback === "correct") ||
               Number(a.userFeedback === "incorrect") - Number(b.userFeedback === "incorrect");
             const exact = Number(b.matchType === "exact") - Number(a.matchType === "exact");
@@ -2736,7 +2762,7 @@
           ? t("recordsFound", { count: records.length })
           : t("noTrustworthyRecords");
         el("resultList").innerHTML = records.length
-          ? records.slice(0, 12).map((record, index) => {
+          ? records.map((record, index) => {
             const owner = state.graph.nodes.find((node) => node.id === ownerThreadId(record));
             const evidence = evidenceFor(record);
             const statusClass = record.userFeedback || "";
@@ -2744,13 +2770,13 @@
               ? t("confirmed")
               : record.userFeedback === "incorrect"
                 ? t("excluded")
-                : `${Math.round(Number(record.matchScore || 0) * 100)}%`;
+                : (matchLabels()[record.matchType] || t("context"));
             return `<button class="result-card ${state.selectedContentId === record.id ? "active" : ""}"
               data-record-id="${escapeHtml(record.id)}" data-thread-id="${escapeHtml(ownerThreadId(record))}">
-              <span class="result-rank">${index + 1}</span>
+              <span class="result-rank">${record.rank || index + 1}</span>
               <span class="result-card-main">
                 <span class="result-source">${escapeHtml(owner?.title || record.source?.threadTitle || t("unknownSourceTask"))}</span>
-                <span class="result-card-title">${highlightText(record.title, query)}</span>
+                <span class="result-card-title">${highlightText(`${t("originalAnswer")}: ${(record.source?.prompt || record.title).slice(0, 100)}`, query)}</span>
                 <span class="result-excerpt">${highlightText(evidence?.text || record.summary || "", query)}</span>
               </span>
               <span class="result-score ${escapeHtml(statusClass)}">${escapeHtml(statusText)}</span>
@@ -2767,7 +2793,7 @@
             renderFilters();
             renderDetail();
             renderResults();
-            detail.classList.add("open");
+            setDetailOpen(true);
           });
         });
       }
@@ -2841,7 +2867,7 @@
         const originalQuery = String(state.graph.query || "").trim().toLocaleLowerCase();
         const isOriginalQuery = Boolean(originalQuery) && query === originalQuery;
         if (isOriginalQuery && node.matchReason &&
-            (node.matchType === "exact" || node.matchType === "semantic")) {
+            (node.matchType === "exact" || node.matchType === "semantic" || node.matchType === "lexical" || node.matchType === "context")) {
           return true;
         }
         return searchableText(node).includes(query);
@@ -3247,7 +3273,7 @@
         });
         renderFilters();
         renderDetail();
-        detail.classList.add("open");
+        setDetailOpen(true);
       }
 
       function formatTime(value) {
@@ -3306,14 +3332,15 @@
           matchLabels()[matchNode.matchType]
         ].filter(Boolean).join(" · ");
         el("detailTitle").textContent = node.title;
+        el("detailTitle").title = node.title;
         el("detailSummary").textContent = node.summary || t("noSummary");
-        el("detailStatus").textContent = node.status || (state.locale === "en" ? "Unknown" : "未知");
+        el("detailStatus").textContent = statusLabels()[node.status] || node.status || t("unknown");
         el("detailTime").textContent = formatTime(sourceTime);
         el("detailId").textContent = node.id;
         el("detailCwd").textContent = sourceCwd || (state.locale === "en" ? "Not provided" : "未提供");
         el("matchReason").hidden = logMode || !matchNode.matchReason;
         el("matchReason").textContent = matchNode.matchReason
-          ? `${state.locale === "en" ? "Match reason" : "匹配原因"}：${matchNode.matchReason}${matchNode.matchScore ? ` · ${Math.round(matchNode.matchScore * 100)}%` : ""}`
+          ? `${state.locale === "en" ? "Match reason" : "匹配原因"}：${matchNode.matchReason}`
           : "";
         const evidence = activeContent?.kind === "record" ? evidenceFor(activeContent) : null;
         el("evidencePanel").hidden = logMode || !evidence;
@@ -3332,8 +3359,14 @@
         document.querySelectorAll(".memory-review-button").forEach((button) => {
           const active = button.dataset.memoryReview === activeContent?.memoryStatus;
           button.classList.toggle("active", active);
-          button.disabled = active;
+          button.disabled = state.pendingReview || (active && !["corrected", "superseded"].includes(button.dataset.memoryReview));
         });
+        if (state.editMemoryId !== activeContent?.id) {
+          state.editMemoryId = activeContent?.id;
+          el("memoryCorrection").value = activeContent?.kind === "memory" ? activeContent.content || "" : "";
+          el("replacementMemory").value = "";
+          el("memoryReviewNote").value = "";
+        }
         el("memoryReviewState").textContent = activeContent?.kind === "memory"
           ? t("currentStatus", { status: memoryStatusLabels()[activeContent.memoryStatus] || activeContent.memoryStatus || t("candidate") }) + `${
             activeContent.reviewedAt ? ` · ${formatTime(activeContent.reviewedAt)}` : ""
@@ -3428,6 +3461,13 @@
         el("inspectTask").hidden = !sourceThreadId;
         el("copyTaskTitle").hidden = !sourceThreadId;
         el("copyRecord").hidden = logMode || !activeContent?.content;
+        const isRecord = activeContent?.kind === "record";
+        el("loadRecord").hidden = !isRecord;
+        el("sourceReadStatus").textContent = isRecord
+          ? `${source.verification === "unavailable" ? (state.locale === "en" ? "Source unavailable or changed — search again" : "来源不可用或已变化，请重新搜索") : source.verification === "verified" ? (state.locale === "en" ? "Source verified" : "已核验来源") : (state.locale === "en" ? "Indexed/cached content; not yet reverified" : "索引/缓存内容，尚未重新核验")} · ${activeContent.content?.length || 0}/${activeContent.contentLength || activeContent.content?.length || 0}${source.conflict ? (state.locale === "en" ? " · Conflicting Turn versions" : " · 同轮次存在不同版本") : ""}` : "";
+        el("reviewHistory").hidden = activeContent?.kind !== "memory";
+        el("reviewHistoryText").textContent = JSON.stringify(activeContent?.reviewHistory || [], null, 2);
+        el("continueWithRecord").disabled = Boolean(["rejected", "superseded"].includes(activeContent?.memoryStatus));
         el("copyRecord").textContent = activeContent?.kind === "memory"
           ? (state.locale === "en" ? "Copy memory candidate" : "复制记忆候选")
           : (state.locale === "en" ? "Copy original answer" : "复制原始回答");
@@ -3500,82 +3540,29 @@
 
       async function callPluginTool(name, args) {
         const api = window.threadAtlasMcp || window.openai || {};
-        if (typeof api.callTool !== "function") return null;
-        try {
-          return await api.callTool(name, args);
-        } catch (error) {
-          showToast(t("persistenceUnavailable", { error: error.message || error }));
-          return null;
-        }
-      }
-
-      function uiStateKey() {
-        return "memorygraph-ui-state:v1";
-      }
-
-      function loadUiState() {
-        try {
-          const value = JSON.parse(localStorage.getItem(uiStateKey()) || "{}");
-          return {
-            feedback: value.feedback && typeof value.feedback === "object" ? value.feedback : {},
-            memoryReviews: value.memoryReviews && typeof value.memoryReviews === "object"
-              ? value.memoryReviews
-              : {},
-          };
-        } catch {
-          return { feedback: {}, memoryReviews: {} };
-        }
-      }
-
-      function saveUiState(value) {
-        try {
-          localStorage.setItem(uiStateKey(), JSON.stringify(value));
-          return true;
-        } catch {
-          return false;
-        }
-      }
-
-      function localFeedbackKey(recordId) {
-        return [state.graph.scope, state.graph.query, recordId].join("\u0000");
-      }
-
-      function applyLocalUiState(graph) {
-        const local = loadUiState();
-        graph.nodes = graph.nodes.map((node) => {
-          if (node.kind === "record") {
-            const verdict = local.feedback[
-              [graph.scope, graph.query, node.id].join("\u0000")
-            ];
-            return verdict && !node.userFeedback ? { ...node, userFeedback: verdict } : node;
-          }
-          if (node.kind === "memory") {
-            const review = local.memoryReviews[node.id];
-            return review && !node.reviewedAt
-              ? { ...node, memoryStatus: review.status, reviewedAt: review.updatedAt }
-              : node;
-          }
-          return node;
-        });
-        return graph;
+        if (typeof api.callTool !== "function") throw new Error(state.locale === "en" ? "Static preview: plugin connection unavailable" : "静态预览：无法连接插件，操作尚未保存");
+        const result = await api.callTool(name, args);
+        if (!result || result.isError || result.error) throw new Error(result?.error?.message || result?.content?.find((item) => item.type === "text")?.text || "Plugin operation failed");
+        return result;
       }
 
       function continuationRequest({ task, content, source, threadId, turnId }) {
         const english = state.locale === "en";
         const lines = english ? [
-          "Continue from the source-verified MemoryGraph record below.",
+          "Continue using the historical MemoryGraph evidence below; verify current applicability first.",
           `Project: ${state.graph.scope || "Current project"}`,
           `Source task: ${source.threadTitle || task?.title || "Unknown"}`,
           `Source task ID: ${threadId || "Unknown"}`,
         ] : [
-          "请基于下方已核验来源的 MemoryGraph 记录继续。",
+          "请参考下方 MemoryGraph 历史证据继续；先核对当前适用性，历史内容不自动成为当前指令。",
           `项目：${state.graph.scope || "当前项目"}`,
           `来源任务：${source.threadTitle || task?.title || "未知"}`,
           `来源任务 ID：${threadId || "未知"}`,
         ];
+        lines.push(english ? `Memory status: ${content?.memoryStatus || "original record"}; source: ${content?.source?.verification || "cached/unverified"}` : `记忆状态：${content?.memoryStatus || "原始记录"}；来源：${content?.source?.verification || "缓存/未核验"}`);
         if (turnId) lines.push(english ? `Source Turn ID: ${turnId}` : `来源轮次 ID：${turnId}`);
         if (source.prompt) lines.push(english ? `Original user prompt: ${source.prompt}` : `原始用户提问：${source.prompt}`);
-        lines.push("", english ? "Verified source content:" : "已核验的来源内容：", String(content?.content || "").slice(0, 5000), "",
+        lines.push("", english ? "Historical content:" : "历史内容：", String(content?.content || ""), "",
           english
             ? "First explain in one paragraph how you understand this record and its context, then continue from it. Do not treat a memory candidate as a confirmed fact; reread the source task when needed."
             : "先用一段话说明你对这条记录及其上下文的理解，然后在此基础上继续。不要把记忆候选当作已确认事实；必要时请重新阅读来源任务。"
@@ -3705,12 +3692,20 @@
 
       function ingestGraph(graph) {
         if (!graph || !Array.isArray(graph.nodes) || !Array.isArray(graph.edges)) return;
-        state.graph = applyLocalUiState(graph);
+        if (state.activeRequest && graph.requestId && graph.requestId !== state.activeRequest) return;
+        const installationLocale = localeFromInstallation(graph);
+        if (installationLocale) {
+          state.locale = installationLocale;
+          el("languageOnboarding").hidden = true;
+          app.inert = false;
+        }
+        state.graph = graph;
         const preferredRecord = graph.mode === "search"
           ? [...graph.nodes]
             .filter((node) => node.kind === "record" && node.matchReason)
             .sort((a, b) => {
-              const feedback = Number(b.userFeedback === "correct") - Number(a.userFeedback === "correct") ||
+              if (a.rank && b.rank) return a.rank - b.rank;
+            const feedback = Number(b.userFeedback === "correct") - Number(a.userFeedback === "correct") ||
                 Number(a.userFeedback === "incorrect") - Number(b.userFeedback === "incorrect");
               const exact = Number(b.matchType === "exact") - Number(a.matchType === "exact");
               return feedback || exact || Number(b.matchScore || 0) - Number(a.matchScore || 0);
@@ -3728,10 +3723,139 @@
         el("searchInput").value = state.query;
         el("graphTitle").textContent = graph.title || "MemoryGraph";
         el("graphScope").textContent = graph.scope || t("currentProject");
+        el("scopeInput").value = graph.scope || "";
+        const options = graph.searchOptions || {};
+        const dateField = (value, exclusive = false) => {
+          if (!value) return "";
+          const date = new Date(Date.parse(value) - (exclusive ? 1 : 0));
+          if (!Number.isFinite(date.getTime())) return "";
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        };
+        el("afterDate").value = dateField(options.after);
+        el("beforeDate").value = dateField(options.before, true);
+        el("includeArchived").checked = options.includeArchived !== false;
+        el("includeExcluded").checked = Boolean(options.includeExcluded);
+        updateSearchSummary();
         renderGraph();
-        detail.classList.toggle("open", Boolean(state.selectedId));
+        setDetailOpen(Boolean(state.selectedId) && window.innerWidth > 650);
         requestAnimationFrame(readableStartView);
+        if (installationLocale) applyLocale();
       }
+
+      function updateSearchSummary() {
+        const coverage = state.graph.coverage;
+        const page = state.graph.page;
+        const english = state.locale === "en";
+        el("searchStatus").textContent = coverage
+          ? `${english ? "Indexed files" : "已索引文件"}: ${coverage.indexedFiles} · ${english ? "Failed / unsupported / malformed" : "失败 / 不支持 / 异常行"}: ${coverage.failedFiles}/${coverage.unsupportedFiles}/${coverage.malformedLines}\n${coverage.partial ? (english ? "Partial coverage — missing records may exist" : "覆盖不完整，未命中不代表不存在") : (english ? "Supported local sources scanned" : "已扫描支持的本地来源")}\n${coverage.refreshedAt || ""}`
+          : (english ? "Snapshot / provided results. Connect the plugin to search history." : "快照/已有结果；连接插件后可搜索历史。");
+        el("previousPage").disabled = state.pageIndex === 0;
+        el("nextPage").disabled = !page?.nextCursor;
+        el("pageInfo").textContent = page ? `${page.offset + (page.total ? 1 : 0)}–${Math.min(page.offset + page.limit, page.total)} / ${page.total}` : "";
+      }
+
+      async function runHistorySearch(cursor = "", pageIndex = 0, reset = true) {
+        const requestId = `widget-${++state.requestSequence}`;
+        state.activeRequest = requestId;
+        const english = state.locale === "en";
+        try {
+          const cwd = el("scopeInput").value.trim();
+          if (!cwd.startsWith("/") && !/^[A-Za-z]:[\\/]/.test(cwd)) throw new Error(english ? "Enter an absolute project directory" : "请输入项目的绝对目录");
+          const from = el("afterDate").value;
+          const through = el("beforeDate").value;
+          const end = through ? new Date(`${through}T00:00:00`) : null;
+          if (end) end.setDate(end.getDate() + 1);
+          const args = { cwd, query: el("searchInput").value.trim(), limit: 10, cursor, requestId,
+            after: from ? new Date(`${from}T00:00:00`).toISOString() : "",
+            before: end ? end.toISOString() : "",
+            includeArchived: el("includeArchived").checked,
+            includeExcluded: el("includeExcluded").checked, saveSnapshot: false };
+          if (!reset) Object.assign(args, { cwd: state.graph.scope, query: state.graph.query,
+            limit: state.graph.page?.limit || 10, ...(state.graph.searchOptions || {}) });
+          el("searchStatus").textContent = english ? "Searching the selected history…" : "正在检索选定目录的历史…";
+          const result = await callPluginTool("search_memory_graph", args);
+          if (state.activeRequest !== requestId) return;
+          const graph = graphFromResult(result);
+          if (!graph) throw new Error(english ? "No search data returned" : "插件没有返回搜索数据");
+          if (reset) state.pageStack = [""];
+          state.pageIndex = pageIndex;
+          state.pageStack[pageIndex] = cursor;
+          el("filterLoaded").checked = false;
+          ingestGraph(graph);
+          app.classList.remove("search-open");
+          el("searchOptionsToggle").setAttribute("aria-expanded", "false");
+          updateSearchSummary();
+        } catch (error) {
+          if (state.activeRequest === requestId) {
+            el("searchStatus").textContent = error.message;
+            showToast(error.message);
+          }
+        }
+      }
+
+      async function readRecordPage(content, all = false) {
+        if (content._reading) return;
+        content._reading = true;
+        el("loadRecord").disabled = true;
+        try {
+          let offset = all ? 0 : (content.contentTruncated ? content.content.length : 0);
+          let text = offset ? content.content : "";
+          do {
+            const result = await callPluginTool("read_memory_record", {
+              cwd: content.source?.cwd || state.graph.scope, recordId: content.id,
+              contentHash: content.source?.contentHash, offset, length: 20000,
+            });
+            const record = result.structuredContent?.record;
+            if (!record || record.offset !== offset || record.recordId !== content.id || record.verification !== "verified") throw new Error("Original record was not verified");
+            text += record.text;
+            content.content = text;
+            content.contentLength = record.totalLength;
+            content.contentTruncated = record.nextOffset !== null;
+            content.source.prompt = record.prompt;
+            content.source.verification = record.verification;
+            offset = record.nextOffset;
+          } while (all && offset !== null);
+          renderDetail();
+        } catch (error) {
+          content.source.verification = "unavailable";
+          throw error;
+        } finally { content._reading = false; el("loadRecord").disabled = false; }
+      }
+
+      async function readFullRecord(content) {
+        await readRecordPage(content, true);
+        if (content.contentTruncated || content.source?.verification !== "verified") throw new Error("Full original record is not available");
+      }
+
+      el("searchOptionsToggle").addEventListener("click", () => {
+        const open = app.classList.toggle("search-open");
+        el("searchOptionsToggle").setAttribute("aria-expanded", String(open));
+      });
+      el("detailTitle").tabIndex = 0;
+      el("detailTitle").setAttribute("role", "button");
+      el("detailTitle").setAttribute("aria-expanded", "false");
+      const toggleTitle = () => el("detailTitle").setAttribute("aria-expanded", String(el("detailTitle").classList.toggle("expanded")));
+      el("detailTitle").addEventListener("click", toggleTitle);
+      el("detailTitle").addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggleTitle(); } });
+      el("searchControls").addEventListener("submit", (event) => { event.preventDefault(); runHistorySearch(); });
+      el("searchInput").addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !el("filterLoaded").checked) { event.preventDefault(); runHistorySearch(); }
+      });
+      el("filterLoaded").addEventListener("change", () => {
+        state.query = el("filterLoaded").checked ? el("searchInput").value : state.graph.query || "";
+        updateSearch();
+      });
+      el("previousPage").addEventListener("click", () => {
+        if (state.pageIndex > 0) runHistorySearch(state.pageStack[state.pageIndex - 1], state.pageIndex - 1, false);
+      });
+      el("nextPage").addEventListener("click", () => {
+        if (state.graph.page?.nextCursor) runHistorySearch(state.graph.page.nextCursor, state.pageIndex + 1, false);
+      });
+      el("loadRecord").addEventListener("click", async () => {
+        const { content } = selectedTaskAndContent();
+        if (content?.kind !== "record") return;
+        try { await readRecordPage(content); } catch (error) { showToast(error.message); renderDetail(); }
+      });
 
       function graphFromResult(result) {
         return result?._meta?.widgetData ||
@@ -3752,13 +3876,49 @@
       });
 
       el("searchInput").addEventListener("input", (event) => {
-        state.query = event.target.value;
-        updateSearch();
+        if (el("filterLoaded").checked) {
+          state.query = event.target.value;
+          updateSearch();
+        }
       });
       el("languageButton").addEventListener("click", () => {
         state.locale = state.locale === "en" ? "zh-CN" : "en";
         try { localStorage.setItem(LANGUAGE_KEY, state.locale); } catch {}
         applyLocale();
+      });
+      el("closeDetail").addEventListener("click", () => {
+        setDetailOpen(false);
+        el("searchInput").focus();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape" || window.innerWidth > 650 || !detail.classList.contains("open")) return;
+        setDetailOpen(false);
+        el("searchInput").focus();
+      });
+      const languageOnboarding = el("languageOnboarding");
+      const languageChoices = [...languageOnboarding.querySelectorAll("[data-select-language]")];
+      languageChoices.forEach((button) => {
+        button.addEventListener("click", () => {
+          state.locale = button.dataset.selectLanguage;
+          try { localStorage.setItem(LANGUAGE_KEY, state.locale); } catch {}
+          languageOnboarding.hidden = true;
+          app.inert = false;
+          applyLocale();
+          el("searchInput").focus();
+        });
+      });
+      languageOnboarding.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") event.preventDefault();
+        if (event.key !== "Tab") return;
+        const first = languageChoices[0];
+        const last = languageChoices[languageChoices.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       });
       document.querySelectorAll(".view-button").forEach((button) => {
         button.addEventListener("click", () => setCanvasMode(button.dataset.canvasMode));
@@ -3773,49 +3933,47 @@
       document.querySelectorAll(".feedback-button").forEach((button) => {
         button.addEventListener("click", async () => {
           const { task, content } = selectedTaskAndContent();
-          if (!task || content?.kind !== "record") return;
-          const verdict = button.dataset.feedback;
-          const local = loadUiState();
-          local.feedback[localFeedbackKey(content.id)] = verdict;
-          saveUiState(local);
-          content.userFeedback = verdict;
-          await callPluginTool("record_retrieval_feedback", {
-            cwd: content.source?.cwd || state.graph.scope,
-            query: state.graph.query || state.query,
-            recordId: content.id,
-            threadId: content.source?.threadId || task.id,
-            turnId: content.source?.turnId || "",
-            verdict,
-          });
-          renderDetail();
-          renderResults();
-          showToast(verdict === "correct" ? t("correctRecordSaved") : t("incorrectRecordSaved"));
+          if (!task || content?.kind !== "record" || state.pendingReview) return;
+          state.pendingReview = true;
+          button.disabled = true;
+          try {
+            const result = await callPluginTool("record_retrieval_feedback", {
+              cwd: content.source?.cwd || state.graph.scope, query: state.graph.query,
+              recordId: content.id, threadId: content.source?.threadId || task.id,
+              turnId: content.source?.turnId || "", verdict: button.dataset.feedback,
+            });
+            if (!result.structuredContent?.feedback) throw new Error("Save not acknowledged");
+            showToast(state.locale === "en" ? "Feedback saved locally" : "反馈已保存到本机");
+            await runHistorySearch();
+          } catch (error) { showToast(error.message); }
+          finally { state.pendingReview = false; renderDetail(); }
         });
       });
       document.querySelectorAll(".memory-review-button").forEach((button) => {
         button.addEventListener("click", async () => {
           const { task, content } = selectedTaskAndContent();
-          if (!task || content?.kind !== "memory") return;
-          const status = button.dataset.memoryReview;
-          const reviewedAt = new Date().toISOString();
-          const local = loadUiState();
-          local.memoryReviews[content.id] = { status, updatedAt: reviewedAt };
-          saveUiState(local);
-          content.memoryStatus = status;
-          content.reviewedAt = reviewedAt;
-          await callPluginTool("review_memory_candidate", {
-            cwd: content.source?.cwd || state.graph.scope,
-            memoryId: content.id,
-            status,
-            threadId: content.source?.threadId || task.id,
-            turnId: content.source?.turnId || "",
-          });
-          renderDetail();
-          showToast(status === "confirmed"
-            ? t("memoryConfirmed")
-            : status === "rejected"
-              ? t("memoryRejected")
-              : t("memoryReset"));
+          if (!task || content?.kind !== "memory" || state.pendingReview) return;
+          state.pendingReview = true;
+          button.disabled = true;
+          try {
+            const result = await callPluginTool("review_memory_candidate", {
+              cwd: content.source?.cwd || state.graph.scope, memoryId: content.id,
+              status: button.dataset.memoryReview, expectedRevision: content.reviewRevision || 0,
+              content: button.dataset.memoryReview === "corrected" ? el("memoryCorrection").value : "", note: el("memoryReviewNote").value,
+              supersededBy: button.dataset.memoryReview === "superseded" ? el("replacementMemory").value : "",
+              threadId: content.source?.threadId || task.id, turnId: content.source?.turnId || "",
+            });
+            const review = result.structuredContent?.review;
+            if (!review) throw new Error("Save not acknowledged");
+            content.memoryStatus = review.status;
+            if (review.status === "corrected") content.content = review.content;
+            content.reviewRevision = review.revision;
+            content.reviewedAt = review.updatedAt;
+            content.supersededBy = review.supersededBy;
+            content.reviewHistory = [...(content.reviewHistory || []), review];
+            showToast(state.locale === "en" ? "Review saved locally" : "审核已保存到本机");
+          } catch (error) { showToast(error.message); }
+          finally { state.pendingReview = false; renderDetail(); }
         });
       });
       document.querySelectorAll(".detail-switch-button").forEach((button) => {
@@ -3861,6 +4019,7 @@
         if (document.fullscreenEnabled) document.documentElement.requestFullscreen().catch(() => {});
       });
       el("refreshButton").addEventListener("click", async () => {
+        if (state.graph.page) { await runHistorySearch(); return; }
         const english = state.locale === "en";
         const sent = await sendFollowUp(
           english
@@ -3879,11 +4038,43 @@
       });
       el("continueWithRecord").addEventListener("click", async () => {
         const anchor = selectedSourceAnchor();
-        if (!anchor.task || !anchor.content?.content) return;
-        const prompt = continuationRequest(anchor);
-        const sent = await sendFollowUp(prompt, state.locale === "en" ? "Continue with verified record" : "基于已核验记录继续");
-        if (sent) showToast(state.locale === "en" ? "Passed the source record to Codex" : "已将来源记录交给 Codex");
-        else await copyText(prompt, state.locale === "en" ? "Could not send directly; continuation context copied" : "无法直接发送；已复制继续所需的上下文");
+        if (!anchor.task || !anchor.content?.content || ["rejected", "superseded"].includes(anchor.content.memoryStatus)) return;
+        try {
+          if (anchor.content.kind === "record" && state.graph.page) await readFullRecord(anchor.content);
+          el("includeAdjacent").checked = false;
+          el("continuePreviewText").value = continuationRequest(anchor);
+          el("continuePreview").showModal();
+        } catch (error) { showToast(error.message); }
+      });
+      el("includeAdjacent").addEventListener("change", async () => {
+        const anchor = selectedSourceAnchor();
+        const preview = el("continuePreviewText");
+        if (!anchor.content) return;
+        preview.value = continuationRequest(anchor);
+        if (!el("includeAdjacent").checked) return;
+        el("sendContinuation").disabled = true;
+        el("copyContinuation").disabled = true;
+        try {
+          const recordId = anchor.content.kind === "record" ? anchor.content.id
+            : state.graph.edges.find((edge) => edge.type === "derived" && edge.target === anchor.content.id)?.source;
+          if (!recordId) throw new Error("Original record reference unavailable");
+          const result = await callPluginTool("read_memory_record", { cwd: state.graph.scope,
+            recordId, contentHash: anchor.source.contentHash, offset: 0, length: 1, context: 1 });
+          const record = result.structuredContent?.record;
+          if (!record || record.verification !== "verified") throw new Error("Context unavailable");
+          if (!el("includeAdjacent").checked || !el("continuePreview").open) return;
+          preview.value += "\n\n" + (state.locale === "en" ? "Adjacent historical turns:" : "相邻历史问答：") + "\n" +
+            record.context.filter((turn) => turn.turnId !== record.turnId).map((turn) =>
+              `[Turn ${turn.turnId}]\n${turn.prompt}\n${turn.answer}${turn.truncated ? "\n[TRUNCATED — read the original turn before relying on it]" : ""}`).join("\n\n");
+        } catch (error) { el("includeAdjacent").checked = false; showToast(error.message); }
+        finally { el("sendContinuation").disabled = false; el("copyContinuation").disabled = false; }
+      });
+      el("closeContinuation").addEventListener("click", () => el("continuePreview").close());
+      el("copyContinuation").addEventListener("click", () => copyText(el("continuePreviewText").value));
+      el("sendContinuation").addEventListener("click", async () => {
+        const sent = await sendFollowUp(el("continuePreviewText").value, "Continue with historical context");
+        if (sent) { el("continuePreview").close(); showToast(state.locale === "en" ? "Context sent" : "上下文已发送"); }
+        else showToast(state.locale === "en" ? "Could not send; copy the context instead" : "无法发送，可复制上下文");
       });
       el("inspectTask").addEventListener("click", async () => {
         const anchor = selectedSourceAnchor();
@@ -3893,11 +4084,13 @@
         if (sent) showToast(state.locale === "en" ? "Asked Codex to read the source context" : "已请求 Codex 阅读来源上下文");
         else await copyText(prompt, state.locale === "en" ? "Could not send directly; context-inspection instructions copied" : "无法直接发送；已复制上下文查看指令");
       });
-      el("copyRecord").addEventListener("click", () => {
+      el("copyRecord").addEventListener("click", async () => {
         const { content } = selectedTaskAndContent();
-        if (content?.content) {
-          copyText(content.content, content.kind === "memory" ? t("copiedMemory") : t("copiedAnswer"));
-        }
+        if (!content?.content) return;
+        try {
+          if (content.kind === "record" && state.graph.page) await readFullRecord(content);
+          await copyText(content.content, content.kind === "memory" ? t("copiedMemory") : t("copiedAnswer"));
+        } catch (error) { showToast(error.message); }
       });
       el("copyTaskTitle").addEventListener("click", () => {
         const { task } = selectedTaskAndContent();
@@ -3967,7 +4160,7 @@
         };
         canvas.classList.add("dragging");
         canvas.setPointerCapture(event.pointerId);
-        if (window.innerWidth <= 650) detail.classList.remove("open");
+        if (window.innerWidth <= 650) setDetailOpen(false);
       });
       canvas.addEventListener("pointermove", (event) => {
         if (!state.dragging) return;
@@ -3988,15 +4181,23 @@
 
       window.addEventListener("resize", () => {
         applyDetailWidth(state.detailWidth);
+        setDetailOpen(window.innerWidth > 650 && Boolean(state.selectedId));
         requestAnimationFrame(applyTransform);
       });
 
       const initialGraph = window.openai?.toolOutput?.nodes
         ? window.openai.toolOutput
         : demoGraph;
+      const installedLocale = localeFromInstallation(initialGraph);
+      if (installedLocale) state.locale = installedLocale;
       restoreDetailWidth();
       ingestGraph(initialGraph);
       applyLocale();
+      if (!storedLocale() && !installedLocale) {
+        app.inert = true;
+        languageOnboarding.hidden = false;
+        languageChoices[0].focus();
+      }
     })();
   </script>
 </body>

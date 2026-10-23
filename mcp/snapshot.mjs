@@ -42,13 +42,17 @@ function scriptSafeJson(value) {
     .replace(/\u2029/g, "\\u2029");
 }
 
-function standaloneHtml({ graph, widgetHtml, markPngBase64 }) {
+function standaloneHtml({ graph, widgetHtml, markPngBase64, mascotPngBase64 }) {
   const bootstrap = `<script>window.openai={toolOutput:${scriptSafeJson(graph)}};</script>`;
   return widgetHtml
     .replace("</head>", `  ${bootstrap}\n</head>`)
-    .replace(
+    .replaceAll(
       'src="./memorygraph-mark.png"',
       `src="data:image/png;base64,${markPngBase64}"`,
+    )
+    .replaceAll(
+      'src="./memorygraph-mascot.png"',
+      `src="data:image/png;base64,${mascotPngBase64}"`,
     );
 }
 
@@ -73,6 +77,7 @@ export function saveGraphSnapshot({
   graph,
   widgetHtml,
   markPngBase64,
+  mascotPngBase64,
   title = graph?.title,
   now = new Date(),
   snapshotDir = process.env.MEMORYGRAPH_SNAPSHOT_DIR ||
@@ -82,6 +87,7 @@ export function saveGraphSnapshot({
   if (!graph?.nodes || !graph?.edges) throw new Error("A normalized graph is required");
   if (!widgetHtml) throw new Error("Widget HTML is required");
   if (!markPngBase64) throw new Error("MemoryGraph mark is required");
+  if (!mascotPngBase64) throw new Error("MemoryGraph mascot is required");
 
   const { day, stamp } = formatSnapshotTimestamp(now);
   const filePath = availablePath(
@@ -100,6 +106,7 @@ export function saveGraphSnapshot({
       graph: { ...graph, snapshot },
       widgetHtml,
       markPngBase64,
+      mascotPngBase64,
     }),
   );
   return snapshot;

@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import readline from "node:readline";
@@ -7,12 +7,15 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SNAPSHOT_ROOT = mkdtempSync(path.join(os.tmpdir(), "memorygraph-mcp-probe-"));
+const PREFERENCES_PATH = path.join(SNAPSHOT_ROOT, "preferences.json");
+writeFileSync(PREFERENCES_PATH, JSON.stringify({ locale: "en" }));
 const child = spawn(process.execPath, ["./mcp/server.mjs"], {
   cwd: ROOT,
   env: {
     ...process.env,
     MEMORYGRAPH_SNAPSHOT_DIR: SNAPSHOT_ROOT,
     MEMORYGRAPH_STATE_PATH: path.join(SNAPSHOT_ROOT, "product-state.json"),
+    MEMORYGRAPH_PREFERENCES_PATH: PREFERENCES_PATH,
   },
   stdio: ["pipe", "pipe", "inherit"],
 });
@@ -47,6 +50,7 @@ try {
   const resources = await request("resources/list");
   const widget = await request("resources/read", { uri: "ui://memorygraph/dag.html" });
   const mark = await request("resources/read", { uri: "ui://memorygraph/memorygraph-mark.png" });
+  const mascot = await request("resources/read", { uri: "ui://memorygraph/memorygraph-mascot.png" });
   const opened = await request("tools/call", {
     name: "show_memory_graph",
     arguments: {
@@ -159,13 +163,22 @@ try {
   if (!widget.contents?.[0]?.text?.includes('id="languageButton"')) {
     throw new Error("Widget language switch is missing");
   }
+  if (!widget.contents?.[0]?.text?.includes('id="languageOnboarding"') ||
+      !widget.contents?.[0]?.text?.includes('data-select-language="zh-CN"') ||
+      !widget.contents?.[0]?.text?.includes('data-select-language="en"')) {
+    throw new Error("First-open language selection is missing");
+  }
   if (!widget.contents?.[0]?.text?.includes('const LANGUAGE_KEY = "memorygraph-language:v2"')) {
-    throw new Error("Widget must reset legacy language preferences to Chinese");
+    throw new Error("Widget language preference key is missing");
   }
   if (mark.contents?.[0]?.mimeType !== "image/png" || !mark.contents?.[0]?.blob) {
     throw new Error("Widget mark missing");
   }
+  if (mascot.contents?.[0]?.mimeType !== "image/png" || !mascot.contents?.[0]?.blob) {
+    throw new Error("Widget mascot missing");
+  }
   if (opened.structuredContent?.nodeCount !== 4) throw new Error("Tool call failed");
+  if (opened._meta?.widgetData?.preferredLocale !== "en") throw new Error("Installed language was not sent to the dashboard");
   if (opened.structuredContent?.projectCount !== 1) throw new Error("Project count missing");
   if (opened.structuredContent?.taskCount !== 1) throw new Error("Task count missing");
   if (opened.structuredContent?.recordCount !== 1) throw new Error("Record count missing");

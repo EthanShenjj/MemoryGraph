@@ -27,6 +27,7 @@ try {
     graph,
     widgetHtml: readFileSync(path.join(ROOT, "assets", "widget.html"), "utf8"),
     markPngBase64: readFileSync(path.join(ROOT, "assets", "memorygraph-mark.png")).toString("base64"),
+    mascotPngBase64: readFileSync(path.join(ROOT, "assets", "memorygraph-mascot.png")).toString("base64"),
     title: graph.title,
     now,
     snapshotDir: temporaryRoot,
@@ -49,6 +50,7 @@ try {
   if (!html.includes("window.openai={toolOutput:")) throw new Error("Graph bootstrap missing");
   if (!html.includes("data:image/png;base64,")) throw new Error("Embedded mark missing");
   if (html.includes('src="./memorygraph-mark.png"')) throw new Error("Snapshot is not standalone");
+  if (html.includes('src="./memorygraph-mascot.png"')) throw new Error("Snapshot mascot is not standalone");
   if (!html.includes(first.fileName)) throw new Error("Snapshot metadata missing");
 
   process.stdout.write("MemoryGraph snapshot probe passed\n");

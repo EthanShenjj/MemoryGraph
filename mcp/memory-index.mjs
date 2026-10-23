@@ -13,10 +13,10 @@ import {
 import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
+import { loadProductState } from "./product-state.mjs";
 
-const INDEX_VERSION = 2;
+const INDEX_VERSION = 3;
 const MAX_RECORD_CONTENT = 20000;
-const MAX_PROMPT_CONTENT = 6000;
 const APPROVAL_PREFIX = "The following is the Codex agent history";
 const DEFAULT_INDEX_DIR = path.join(os.homedir(), ".codex", "memorygraph");
 const LEGACY_INDEX_DIR = path.join(os.homedir(), ".codex", "thread-atlas");
@@ -41,16 +41,20 @@ function unique(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
-function listJsonlFiles(root) {
+function listJsonlFiles(root, coverage) {
   if (!existsSync(root)) return [];
   const result = [];
   const queue = [root];
   while (queue.length) {
     const current = queue.shift();
-    for (const entry of readdirSync(current, { withFileTypes: true })) {
+    let entries;
+    try { entries = readdirSync(current, { withFileTypes: true }); }
+    catch { coverage.failedFiles += 1; continue; }
+    for (const entry of entries) {
       const fullPath = path.join(current, entry.name);
       if (entry.isDirectory()) queue.push(fullPath);
       else if (entry.isFile() && entry.name.endsWith(".jsonl")) result.push(fullPath);
+      else if (entry.isFile() && /\.jsonl\./.test(entry.name)) coverage.unsupportedFiles += 1;
     }
   }
   return result.sort();
@@ -87,12 +91,12 @@ function firstJsonLine(filePath) {
 function messageText(payload) {
   return (Array.isArray(payload?.content) ? payload.content : [])
     .map((item) => item?.text || "")
-    .join("\n")
-    .trim();
+    .join("\n");
 }
 
 function cleanUserPrompt(value) {
-  let text = normalize(value);
+  let text = String(value ?? "");
+  if (!/<(?:in-app-browser-context|environment_context)|## My request for Codex:/i.test(text)) return text;
   text = text
     .replace(/<in-app-browser-context[\s\S]*?<\/in-app-browser-context>/gi, "")
     .replace(/<environment_context[\s\S]*?<\/environment_context>/gi, "")
@@ -115,6 +119,7 @@ function parseSessionFile(filePath) {
   let meta = null;
   let currentTurnId = "";
   const turns = new Map();
+  let malformedLines = 0;
 
   for (let lineNumber = 0; lineNumber < lines.length; lineNumber += 1) {
     const line = lines[lineNumber];
@@ -123,6 +128,7 @@ function parseSessionFile(filePath) {
     try {
       event = JSON.parse(line);
     } catch {
+      malformedLines += 1;
       continue;
     }
     if (event.type === "session_meta") {
@@ -154,11 +160,12 @@ function parseSessionFile(filePath) {
 
   return {
     threadId: normalize(meta?.id || meta?.session_id),
-    cwd: normalize(meta?.cwd),
+    cwd: String(meta?.cwd || "").trim(),
     createdAt: meta?.timestamp || null,
     source: normalize(meta?.source),
     originator: normalize(meta?.originator),
     turns: [...turns.values()],
+    malformedLines,
   };
 }
 
@@ -169,7 +176,7 @@ function loadTitles(indexPath) {
     if (!line) continue;
     try {
       const item = JSON.parse(line);
-      if (item?.id) titles.set(String(item.id), normalize(item.thread_name));
+      if (item?.id) titles.set(String(item.id), String(item.thread_name || ""));
     } catch {
       // Ignore one malformed title row without losing the rest of the local index.
     }
@@ -215,6 +222,8 @@ function buildCanonicalRecords(fileEntries, titles) {
         threadId: session.threadId,
         threadTitle: titles.get(session.threadId) || "未命名任务",
         cwd: session.cwd,
+        archived: Boolean(entry.archived),
+        sourceRef: entry.sourceRef,
         sessionCreatedAt: session.createdAt,
         prompt: cleanUserPrompt(user.text),
         answer: assistant.text,
@@ -223,9 +232,10 @@ function buildCanonicalRecords(fileEntries, titles) {
         promptLine: user.line,
         answerLine: assistant.line,
       };
-      const occurrences = occurrencesByTurn.get(turn.turnId) || [];
+      const versionKey = `${turn.turnId}:${hash(occurrence.prompt + "\u0000" + occurrence.answer)}`;
+      const occurrences = occurrencesByTurn.get(versionKey) || [];
       occurrences.push(occurrence);
-      occurrencesByTurn.set(turn.turnId, occurrences);
+      occurrencesByTurn.set(versionKey, occurrences);
       thread.updatedAt = assistant.timestamp || user.timestamp || thread.updatedAt;
     }
     thread.turnCount = turnIds.size;
@@ -234,7 +244,13 @@ function buildCanonicalRecords(fileEntries, titles) {
   }
 
   const records = [];
-  for (const [turnId, rawOccurrences] of occurrencesByTurn) {
+  const turnVersions = new Map();
+  for (const occurrences of occurrencesByTurn.values()) {
+    const turnId = occurrences[0].turnId;
+    turnVersions.set(turnId, (turnVersions.get(turnId) || 0) + 1);
+  }
+  for (const rawOccurrences of occurrencesByTurn.values()) {
+    const turnId = rawOccurrences[0].turnId;
     const occurrences = rawOccurrences
       .filter((item) => item.prompt && item.answer)
       .sort((a, b) =>
@@ -244,15 +260,20 @@ function buildCanonicalRecords(fileEntries, titles) {
     if (!occurrences.length) continue;
     const origin = occurrences[0];
     const copies = unique(occurrences.map((item) => item.threadId));
-    const answer = clamp(origin.answer, MAX_RECORD_CONTENT);
-    const prompt = clamp(origin.prompt, MAX_PROMPT_CONTENT);
+    const answer = origin.answer;
+    const prompt = origin.prompt;
+    const conflict = turnVersions.get(turnId) > 1;
+    const suffix = conflict ? `:${hash(prompt + "\u0000" + answer).slice(0, 12)}` : "";
     records.push({
-      id: `record:${origin.threadId}:${turnId}:assistant`,
-      canonicalId: `${origin.threadId}:${turnId}:assistant`,
+      id: `record:${origin.threadId}:${turnId}:assistant${suffix}`,
+      canonicalId: `${origin.threadId}:${turnId}:assistant${suffix}`,
       turnId,
       originThreadId: origin.threadId,
       originThreadTitle: origin.threadTitle,
       cwd: origin.cwd,
+      archived: occurrences.every((item) => item.archived),
+      conflict,
+      sourceRef: origin.sourceRef,
       prompt,
       answer,
       promptTimestamp: origin.promptTimestamp,
@@ -295,7 +316,7 @@ function extractMemories(records) {
     const statement = memoryStatement(record.answer);
     if (!statement) return [];
     return [{
-      id: `memory:${record.originThreadId}:${record.turnId}:decision`,
+      id: record.memoryId || `memory:${record.originThreadId}:${record.turnId}:decision${record.conflict ? `:${record.contentHash.slice(0, 12)}` : ""}`,
       recordId: record.id,
       threadId: record.originThreadId,
       turnId: record.turnId,
@@ -348,13 +369,14 @@ export function refreshMemoryIndex({
   force = false,
   sessionsRoot = process.env.CODEX_SESSIONS_DIR ||
     path.join(os.homedir(), ".codex", "sessions"),
+  archivedRoot = process.env.CODEX_ARCHIVED_SESSIONS_DIR || path.join(path.dirname(sessionsRoot), "archived_sessions"),
   titleIndexPath = process.env.CODEX_SESSION_INDEX ||
     path.join(os.homedir(), ".codex", "session_index.jsonl"),
   indexDir = process.env.MEMORYGRAPH_INDEX_DIR ||
     process.env.THREAD_ATLAS_INDEX_DIR ||
     DEFAULT_INDEX_DIR,
 } = {}) {
-  const exactCwd = normalize(cwd);
+  const exactCwd = String(cwd || "").trim();
   if (!exactCwd) throw new Error("cwd is required for a project-scoped memory index");
   const targetPath = indexFilePath(exactCwd, indexDir);
   const legacyPath = indexFilePath(exactCwd, LEGACY_INDEX_DIR);
@@ -370,56 +392,87 @@ export function refreshMemoryIndex({
   let reusedFiles = 0;
   let skippedFiles = 0;
 
-  for (const filePath of listJsonlFiles(sessionsRoot)) {
-    let fileStat;
+  const coverage = { roots: [sessionsRoot, archivedRoot], failedFiles: 0,
+    unsupportedFiles: 0, malformedLines: 0, scannedFiles: 0, indexedFiles: 0 };
+  const candidates = unique(coverage.roots.flatMap((root) => listJsonlFiles(root, coverage)));
+  for (const filePath of candidates) {
+    coverage.scannedFiles += 1;
     try {
-      fileStat = statSync(filePath);
-    } catch {
-      continue;
-    }
-    const cached = previousFiles[filePath];
-    const scanned = previousScanCache[filePath];
-    if (!force && cached &&
-        cached.mtimeMs === fileStat.mtimeMs &&
-        cached.size === fileStat.size) {
-      files[filePath] = cached;
+      const fileStat = statSync(filePath);
+      const archived = filePath.startsWith(path.resolve(archivedRoot) + path.sep);
+      const cached = previousFiles[filePath];
+      const scanned = previousScanCache[filePath];
+      if (!force && cached && cached.mtimeMs === fileStat.mtimeMs && cached.size === fileStat.size) {
+        files[filePath] = { ...cached, archived, sourceRef: filePath };
+        coverage.malformedLines += cached.session.malformedLines || 0;
+        scanCache[filePath] = { mtimeMs: fileStat.mtimeMs, size: fileStat.size, inScope: true };
+        reusedFiles += 1;
+        continue;
+      }
+      if (!force && scanned && scanned.mtimeMs === fileStat.mtimeMs &&
+          scanned.size === fileStat.size && scanned.inScope === false) {
+        scanCache[filePath] = scanned;
+        skippedFiles += 1;
+        continue;
+      }
+      const first = firstJsonLine(filePath);
+      if (first?.type !== "session_meta") {
+        coverage.failedFiles += 1;
+        continue;
+      }
+      if (String(first.payload?.cwd || "").trim() !== exactCwd) {
+        scanCache[filePath] = { mtimeMs: fileStat.mtimeMs, size: fileStat.size, inScope: false };
+        skippedFiles += 1;
+        continue;
+      }
+      const session = parseSessionFile(filePath);
+      if (session.cwd !== exactCwd) continue;
+      coverage.malformedLines += session.malformedLines;
+      files[filePath] = { mtimeMs: fileStat.mtimeMs, size: fileStat.size, session, archived, sourceRef: filePath };
       scanCache[filePath] = { mtimeMs: fileStat.mtimeMs, size: fileStat.size, inScope: true };
-      reusedFiles += 1;
-      continue;
+      parsedFiles += 1;
+    } catch {
+      coverage.failedFiles += 1;
     }
-    if (!force && scanned &&
-        scanned.mtimeMs === fileStat.mtimeMs &&
-        scanned.size === fileStat.size &&
-        scanned.inScope === false) {
-      scanCache[filePath] = scanned;
-      skippedFiles += 1;
-      continue;
-    }
-    const first = firstJsonLine(filePath);
-    if (first?.type !== "session_meta" || normalize(first.payload?.cwd) !== exactCwd) {
-      scanCache[filePath] = { mtimeMs: fileStat.mtimeMs, size: fileStat.size, inScope: false };
-      skippedFiles += 1;
-      continue;
-    }
-    const session = parseSessionFile(filePath);
-    if (session.cwd !== exactCwd) continue;
-    files[filePath] = {
-      mtimeMs: fileStat.mtimeMs,
-      size: fileStat.size,
-      session,
-    };
-    scanCache[filePath] = { mtimeMs: fileStat.mtimeMs, size: fileStat.size, inScope: true };
-    parsedFiles += 1;
   }
+  coverage.indexedFiles = Object.keys(files).length;
+  coverage.missingRoots = coverage.roots.filter((root) => !existsSync(root));
+  coverage.partial = Boolean(coverage.failedFiles || coverage.unsupportedFiles || coverage.malformedLines || coverage.missingRoots.length === coverage.roots.length);
+  coverage.refreshedAt = new Date().toISOString();
 
-  const titles = loadTitles(titleIndexPath);
+  let titles;
+  try { titles = loadTitles(titleIndexPath); }
+  catch { titles = new Map(); coverage.failedFiles += 1; coverage.partial = true; }
   const canonical = buildCanonicalRecords(files, titles);
+  // Keep reviewed record identities when the earliest known copy moves or disappears.
+  // A forced parse must not discard this identity mapping.
+  const identityIndex = previous || safeLoadIndex(targetPath, exactCwd);
+  const priorRecords = new Map((identityIndex?.records || []).map((record) =>
+    [`${record.turnId}:${record.contentHash}:${hash(record.prompt)}`, record]));
+  const priorMemories = new Map((identityIndex?.memories || []).map((memory) => [memory.recordId, memory.id]));
+  const priorTurnIds = new Set((identityIndex?.records || []).map((record) => record.turnId));
+  for (const record of canonical.records) {
+    const prior = priorRecords.get(`${record.turnId}:${record.contentHash}:${hash(record.prompt)}`);
+    if (!prior) {
+      if (priorTurnIds.has(record.turnId)) {
+        record.id = `record:${record.originThreadId}:${record.turnId}:assistant:${hash(record.prompt + "\u0000" + record.answer).slice(0, 12)}`;
+        record.canonicalId = record.id.replace(/^record:/, "");
+        record.memoryId = `memory:${record.originThreadId}:${record.turnId}:decision:${record.contentHash.slice(0, 12)}`;
+        record.conflict = true;
+      }
+      continue;
+    }
+    record.id = prior.id;
+    record.canonicalId = prior.canonicalId;
+    record.memoryId = priorMemories.get(prior.id);
+  }
   const memories = extractMemories(canonical.records);
   const index = {
     version: INDEX_VERSION,
     cwd: exactCwd,
     generatedAt: new Date().toISOString(),
     sessionsRoot,
+    coverage,
     titleIndexPath,
     files,
     scanCache,
@@ -440,6 +493,7 @@ export function refreshMemoryIndex({
       indexedTasks: canonical.threads.length,
       indexedRecords: canonical.records.length,
       memoryCandidates: memories.length,
+      coverage,
     },
   };
 }
@@ -457,6 +511,18 @@ function queryTokens(query) {
   return [...tokens];
 }
 
+const QUERY_ALIASES = [
+  ["退信", "bounce", "bounces"], ["退订", "unsubscribe", "unsubscription"],
+  ["回调", "callback", "webhook"], ["限流", "rate limit", "rate limiting"],
+  ["鉴权", "认证", "authentication", "auth"], ["索引", "indexing", "index"],
+];
+
+function expandedTokens(query) {
+  const normalized = normalizedSearch(query);
+  return unique(QUERY_ALIASES.filter((group) => group.some((word) => normalized.includes(word)))
+    .flat().filter((word) => word !== normalized));
+}
+
 function scoreRecord(record, query) {
   const phrase = normalizedSearch(query);
   const prompt = normalizedSearch(record.prompt);
@@ -464,18 +530,21 @@ function scoreRecord(record, query) {
   const title = normalizedSearch(record.originThreadTitle);
   const tokens = queryTokens(query);
   const reasons = [];
+  const literalQuery = String(query).toLocaleLowerCase();
+  const literalMatch = [record.prompt, record.answer, record.originThreadTitle]
+    .some((value) => String(value || "").toLocaleLowerCase().includes(literalQuery));
   let score = 0;
   if (phrase && prompt.includes(phrase)) {
     score += 100;
-    reasons.push("原始用户提问包含完整查询");
+    reasons.push(String(record.prompt).toLocaleLowerCase().includes(literalQuery) ? "原始用户提问包含完整查询" : "用户提问规范化后匹配完整查询");
   }
   if (phrase && answer.includes(phrase)) {
     score += 70;
-    reasons.push("原始助手回答包含完整查询");
+    reasons.push(String(record.answer).toLocaleLowerCase().includes(literalQuery) ? "原始助手回答包含完整查询" : "助手回答规范化后匹配完整查询");
   }
   if (phrase && title.includes(phrase)) {
     score += 45;
-    reasons.push("任务标题包含完整查询");
+    reasons.push(String(record.originThreadTitle).toLocaleLowerCase().includes(literalQuery) ? "任务标题包含完整查询" : "任务标题规范化后匹配完整查询");
   }
   let promptHits = 0;
   let answerHits = 0;
@@ -497,9 +566,13 @@ function scoreRecord(record, query) {
   if (promptHits) reasons.push(`用户提问匹配 ${promptHits}/${tokens.length || 1} 个查询词`);
   if (answerHits) reasons.push(`助手回答匹配 ${answerHits}/${tokens.length || 1} 个查询词`);
   if (titleHits) reasons.push(`任务标题匹配 ${titleHits}/${tokens.length || 1} 个查询词`);
+  const expansions = expandedTokens(query).filter((word) =>
+    prompt.includes(word) || answer.includes(word) || title.includes(word));
+  score += expansions.length * 4;
+  if (expansions.length) reasons.push(`扩展词匹配：${expansions.join(", ")}`);
   return {
     score,
-    matchType: phrase && (prompt.includes(phrase) || answer.includes(phrase) || title.includes(phrase))
+    matchType: phrase && literalMatch
       ? "exact"
       : "lexical",
     reasons,
@@ -518,7 +591,18 @@ function sharedPrefixEdges(index, taskIds) {
       const b = taskIds[right];
       const aTurns = sets.get(a);
       const bTurns = sets.get(b);
-      const shared = [...aTurns].filter((turnId) => bTurns.has(turnId));
+      const aOrder = [...aTurns];
+      const bOrder = [...bTurns];
+      const signatures = (threadId) => new Map(Object.values(index.files || {}).flatMap((entry) =>
+        entry.session?.threadId === threadId ? entry.session.turns.map((turn) =>
+          [turn.turnId, hash(JSON.stringify(turn.messages.map(({ role, text }) => ({ role, text }))))]) : []));
+      const aSignatures = signatures(a);
+      const bSignatures = signatures(b);
+      const shared = [];
+      for (let i = 0; i < Math.min(aOrder.length, bOrder.length); i += 1) {
+        if (aOrder[i] !== bOrder[i] || aSignatures.get(aOrder[i]) !== bSignatures.get(bOrder[i])) break;
+        shared.push(aOrder[i]);
+      }
       if (shared.length < 3) continue;
       edges.push({
         id: `shared-prefix:${a}:${b}`,
@@ -527,7 +611,7 @@ function sharedPrefixEdges(index, taskIds) {
         type: "shared-prefix",
         layer: "task",
         direction: "symmetric",
-        evidenceType: "turn-id-overlap",
+        evidenceType: "ordered-turn-content-prefix",
         evidence: `${shared.length} shared Turn IDs`,
         confidence: Math.min(0.99, 0.7 + shared.length * 0.02),
         label: `${shared.length} shared Turns`,
@@ -544,38 +628,61 @@ function projectId(cwd) {
 export function searchMemoryIndex(index, {
   query,
   limit = 8,
+  cursor = "",
+  after = "",
+  before = "",
+  includeArchived = true,
+  includeExcluded = false,
+  productState = loadProductState(),
   indexStats = {},
 } = {}) {
-  const searchQuery = normalize(query);
-  if (!searchQuery) throw new Error("query is required");
-  const cappedLimit = Math.max(1, Math.min(20, Number(limit) || 8));
-  const scored = index.records
-    .map((record) => ({ record, ranking: scoreRecord(record, searchQuery) }))
-    .filter((item) => item.ranking.score > 0);
-  const taskHitCounts = new Map();
-  for (const item of scored) {
-    const threadId = item.record.originThreadId;
-    taskHitCounts.set(threadId, (taskHitCounts.get(threadId) || 0) + 1);
+  const searchQuery = String(query ?? "").trim();
+  if (searchQuery.length > 1000) throw new Error("Query must be at most 1000 characters");
+  const dates = [after, before].map((value) => value ? Date.parse(value) : null);
+  if (dates.some((value) => value !== null && !Number.isFinite(value)) ||
+      (dates[0] !== null && dates[1] !== null && dates[0] >= dates[1])) {
+    throw new Error("Invalid date range");
   }
-  const ranked = scored
-    .map((item) => {
-      const taskHits = taskHitCounts.get(item.record.originThreadId) || 1;
-      const densityBonus = Math.min(30, Math.max(0, taskHits - 1) * 10);
-      return {
-        ...item,
-        ranking: {
-          ...item.ranking,
-          score: item.ranking.score + densityBonus,
-          reasons: densityBonus
-            ? [...item.ranking.reasons, `同一来源任务中还有 ${taskHits - 1} 条相关记录`]
-            : item.ranking.reasons,
-        },
-      };
-    })
-    .sort((a, b) =>
-      b.ranking.score - a.ranking.score ||
-      String(b.record.answerTimestamp || "").localeCompare(String(a.record.answerTimestamp || "")))
-    .slice(0, cappedLimit);
+  const cappedLimit = Math.max(1, Math.min(20, Math.floor(Number(limit) || 8)));
+  const feedback = new Map((productState.feedback || []).filter((entry) =>
+    entry.cwd === index.cwd && entry.query.toLocaleLowerCase() === searchQuery.toLocaleLowerCase())
+    .map((entry) => [entry.recordId, entry]));
+  const allRanked = index.records.filter((record) => {
+    const timestamp = Date.parse(record.answerTimestamp);
+    return (includeArchived || !record.archived) &&
+      (dates[0] === null || timestamp >= dates[0]) && (dates[1] === null || timestamp < dates[1]);
+  }).map((record) => {
+    const ranking = searchQuery ? scoreRecord(record, searchQuery) : { score: 1, matchType: "context", reasons: ["最近记录"] };
+    return { record, ranking, feedback: feedback.get(record.id) };
+  }).filter((item) => item.ranking.score > 0 && (includeExcluded || item.feedback?.verdict !== "incorrect"));
+  const taskHitCounts = new Map();
+  for (const { record } of allRanked) taskHitCounts.set(record.originThreadId, (taskHitCounts.get(record.originThreadId) || 0) + 1);
+  for (const item of allRanked) {
+    item.ranking.score += searchQuery ? Math.min(30, Math.max(0, (taskHitCounts.get(item.record.originThreadId) || 1) - 1) * 10) : 0;
+  }
+  allRanked.sort((a, b) =>
+    Number(b.feedback?.verdict === "correct") - Number(a.feedback?.verdict === "correct") ||
+    Number(a.feedback?.verdict === "incorrect") - Number(b.feedback?.verdict === "incorrect") ||
+    Number(b.ranking.matchType === "exact") - Number(a.ranking.matchType === "exact") ||
+    b.ranking.score - a.ranking.score ||
+    String(b.record.answerTimestamp || "").localeCompare(String(a.record.answerTimestamp || "")) ||
+    a.record.id.localeCompare(b.record.id));
+  const signature = hash(JSON.stringify({ cwd: index.cwd, searchQuery, after, before, includeArchived,
+    includeExcluded, limit: cappedLimit, records: allRanked.map((item) =>
+      [item.record.id, item.record.contentHash, item.record.originThreadTitle, item.feedback?.verdict]) }));
+  let offset = 0;
+  if (cursor) {
+    try {
+      const value = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8"));
+      if (value.signature !== signature || !Number.isSafeInteger(value.offset) || value.offset < 0 || value.offset >= allRanked.length) throw new Error();
+      offset = value.offset;
+    } catch { throw new Error("Search changed or cursor expired; search again"); }
+  }
+  const ranked = allRanked.slice(offset, offset + cappedLimit);
+  const page = { total: allRanked.length, offset, limit: cappedLimit,
+    nextCursor: offset + cappedLimit < allRanked.length
+      ? Buffer.from(JSON.stringify({ signature, offset: offset + cappedLimit })).toString("base64url") : null };
+  const coverage = index.coverage || { partial: false };
 
   const threadById = new Map(index.threads.map((thread) => [thread.id, thread]));
   const taskIds = unique(ranked.map((item) => item.record.originThreadId));
@@ -588,7 +695,7 @@ export function searchMemoryIndex(index, {
     status: "indexed",
     cwd: index.cwd,
     cluster: "项目",
-    tags: ["本地索引", "完整项目"],
+    tags: ["本地索引", coverage.partial ? "部分覆盖" : "支持的本地来源"],
   }];
 
   for (const threadId of taskIds) {
@@ -642,13 +749,18 @@ export function searchMemoryIndex(index, {
       id: record.id,
       title: `原始回答：${clamp(record.prompt, 72)}`,
       summary: clamp(record.answer.replace(/\s+/g, " "), 180),
-      content: record.answer,
+      content: record.answer.slice(0, MAX_RECORD_CONTENT),
+      contentLength: record.answer.length,
+      contentTruncated: record.answer.length > MAX_RECORD_CONTENT,
+      rank: offset + rank + 1,
+      userFeedback: feedback.get(record.id)?.verdict || "",
+      retrievalScoreApplied: true,
       kind: "record",
       status: "found",
       cwd: record.cwd,
       updatedAt: record.answerTimestamp,
       cluster: "来源记录",
-      matchType: ranking.matchType === "exact" ? "exact" : "context",
+      matchType: ranking.matchType,
       matchScore: score,
       matchReason: ranking.reasons.join("; "),
       tags: ["原始回答", `前 ${rank + 1}`],
@@ -659,7 +771,12 @@ export function searchMemoryIndex(index, {
         role: "assistant",
         timestamp: record.answerTimestamp,
         prompt: record.prompt,
-        excerpt: clamp(record.answer, 320),
+        excerpt: record.answer.slice(0, 320),
+        sourceRef: record.sourceRef,
+        archived: record.archived,
+        conflict: record.conflict,
+        verification: "indexed",
+        originLabel: "earliest-known",
         contentHash: record.contentHash,
         duplicateCount: record.duplicateCount,
         cwd: record.cwd,
@@ -715,6 +832,9 @@ export function searchMemoryIndex(index, {
       mode: "search",
       generatedAt: new Date().toISOString(),
       rootProjectId: rootId,
+      page,
+      coverage,
+      searchOptions: { after, before, includeArchived, includeExcluded },
       retrieval: {
         strategy: "local-exact-turn-index",
         scannedTasks: index.threads.length,
@@ -731,14 +851,20 @@ export function searchMemoryIndex(index, {
       nodes,
       edges,
     },
+    page,
+    coverage,
     results: ranked.map(({ record, ranking }, rank) => ({
-      rank: rank + 1,
+      rank: offset + rank + 1,
+      id: record.id,
+      userFeedback: feedback.get(record.id)?.verdict || "",
       canonicalId: record.canonicalId,
       threadId: record.originThreadId,
       threadTitle: record.originThreadTitle,
       turnId: record.turnId,
       prompt: record.prompt,
-      answer: record.answer,
+      answer: record.answer.slice(0, MAX_RECORD_CONTENT),
+      answerLength: record.answer.length,
+      truncated: record.answer.length > MAX_RECORD_CONTENT,
       timestamp: record.answerTimestamp,
       contentHash: record.contentHash,
       duplicateCount: record.duplicateCount,
@@ -748,6 +874,33 @@ export function searchMemoryIndex(index, {
       reasons: ranking.reasons,
     })),
   };
+}
+
+export function readMemoryRecord(index, { recordId, contentHash, offset = 0, length = 12000, context = 0 } = {}) {
+  const record = index.records.find((item) => item.id === recordId);
+  if (!record) throw new Error("Source record is unavailable; refresh the search");
+  const session = parseSessionFile(record.sourceRef);
+  if (session.cwd !== index.cwd) throw new Error("Source project changed");
+  const turn = session.turns.find((item) => item.turnId === record.turnId &&
+    hash(chooseMessage(item.messages, "assistant")?.text || "") === record.contentHash);
+  if (!turn || (contentHash && record.contentHash !== contentHash)) throw new Error("Source content changed; search again");
+  const answer = chooseMessage(turn.messages, "assistant").text;
+  const start = Number(offset);
+  const size = Number(length);
+  if (!Number.isSafeInteger(start) || start < 0 || start > answer.length ||
+      !Number.isSafeInteger(size) || size < 1 || size > 20000) throw new Error("Invalid record page");
+  const position = session.turns.indexOf(turn);
+  const radius = Math.max(0, Math.min(2, Math.floor(Number(context) || 0)));
+  return { recordId, threadId: record.originThreadId, turnId: record.turnId,
+    contentHash: record.contentHash, verification: "verified", prompt: record.prompt,
+    text: answer.slice(start, start + size), offset: start, totalLength: answer.length,
+    nextOffset: start + size < answer.length ? start + size : null,
+    context: radius ? session.turns.slice(Math.max(0, position - radius), position + radius + 1).map((item) => ({
+      turnId: item.turnId, timestamp: chooseMessage(item.messages, "assistant")?.timestamp || null,
+      prompt: cleanUserPrompt(chooseMessage(item.messages, "user")?.text || ""),
+      answer: (chooseMessage(item.messages, "assistant")?.text || "").slice(0, 20000),
+      truncated: (chooseMessage(item.messages, "assistant")?.text.length || 0) > 20000,
+    })) : [] };
 }
 
 export function loadOrRefreshMemoryIndex(options = {}) {

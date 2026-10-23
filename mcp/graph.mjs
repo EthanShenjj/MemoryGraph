@@ -2,7 +2,7 @@ const NODE_KINDS = new Set([
   "project", "record", "thread", "memory", "decision", "artifact", "milestone",
 ]);
 const EDGE_TYPES = new Set(["membership", "fork", "shared-prefix", "continuation", "related", "contains", "derived"]);
-const MATCH_TYPES = new Set(["exact", "semantic", "context"]);
+const MATCH_TYPES = new Set(["exact", "lexical", "semantic", "context"]);
 const MEMORY_TYPES = new Set([
   "decision", "fact", "requirement", "open-question", "plan", "definition", "insight",
 ]);
@@ -26,17 +26,21 @@ function source(raw = {}) {
   return {
     threadId: text(raw?.threadId, "", 160),
     turnId: text(raw?.turnId, "", 160),
-    threadTitle: text(raw?.threadTitle, "", 240),
+    threadTitle: String(raw?.threadTitle || ""),
     role: ["user", "assistant", "system"].includes(raw?.role) ? raw.role : "",
     timestamp: raw?.timestamp ?? null,
-    prompt: text(raw?.prompt, "", 4000),
+    prompt: String(raw?.prompt || ""),
     excerpt: text(raw?.excerpt, "", 1200),
     contentHash: text(raw?.contentHash, "", 160),
-    duplicateCount: Math.max(1, Math.min(99, Math.round(number(raw?.duplicateCount, 1)))),
+    verification: text(raw?.verification, "", 40),
+    originLabel: text(raw?.originLabel, "", 40),
+    archived: Boolean(raw?.archived),
+    conflict: Boolean(raw?.conflict),
+    duplicateCount: Math.max(1, Math.round(number(raw?.duplicateCount, 1))),
     cwd: text(raw?.cwd, "", 500),
     line: Math.max(0, Math.round(number(raw?.line, 0))),
     copies: Array.isArray(raw?.copies)
-      ? [...new Set(raw.copies.map((item) => text(item, "", 160)).filter(Boolean))].slice(0, 40)
+      ? [...new Set(raw.copies.map((item) => text(item, "", 160)).filter(Boolean))]
       : [],
   };
 }
@@ -69,9 +73,14 @@ export function normalizeGraph(input = {}) {
       id,
       // A thread title is the exact Codex task title and must survive normalization.
       // Visual clamping belongs to the widget, not to the data boundary.
-      title: text(raw?.title, "未命名任务", kind === "thread" ? 500 : 160),
+      title: kind === "thread" ? String(raw?.title || "未命名任务") : text(raw?.title, "未命名任务", 160),
       summary: text(raw?.summary, "", 1200),
-      content: text(raw?.content, "", 20000),
+      content: String(raw?.content || "").slice(0, 20000),
+      contentLength: Math.max(String(raw?.content || "").length, Number(raw?.contentLength) || 0),
+      contentTruncated: Boolean(raw?.contentTruncated || String(raw?.content || "").length > 20000),
+      rank: Number(raw?.rank) || 0,
+      retrievalScoreApplied: Boolean(raw?.retrievalScoreApplied),
+      userFeedback: ["correct", "incorrect"].includes(raw?.userFeedback) ? raw.userFeedback : "",
       kind,
       status: text(raw?.status, "unknown", 40),
       updatedAt: raw?.updatedAt ?? null,
@@ -125,12 +134,15 @@ export function normalizeGraph(input = {}) {
   return {
     version: 1,
     title: text(input.title, "MemoryGraph", 120),
-    query: text(input.query, "", 240),
-    scope: text(input.scope, "当前项目", 160),
+    query: text(input.query, "", 1000),
+    scope: String(input.scope || "当前项目"),
     rootProjectId: text(input.rootProjectId, "", 160),
     mode: ["project", "search", "branch"].includes(input.mode) ? input.mode : "project",
     generatedAt: input.generatedAt || new Date().toISOString(),
     retrieval: retrieval(input.retrieval),
+    page: input.page || null,
+    coverage: input.coverage || null,
+    searchOptions: input.searchOptions || null,
     nodes,
     edges,
   };

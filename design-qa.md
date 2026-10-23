@@ -1,57 +1,26 @@
-# MemoryGraph design QA
+# MemoryGraph UI and language QA
 
-## Status
+## Design
 
-**Blocked — implementation capture unavailable**
+- Muse-inspired three-column workspace: white project index, pale graph/results surface, and a white reading inspector. The reference is Meta's [Muse design article](https://introducing.muse.ai/).
+- Soft rounded controls and source cards, clear list-like suggestions, and restrained blue actions follow Muse's visual direction. Amber still marks retrieved evidence.
+- The supplied blue MemoryGraph character is the product companion: a compact avatar in the header, a quiet presence beside result summaries, and the main visual on first-open language selection.
+- Desktop uses a 64 px header, 272 px project rail, and a resizable 432 px inspector. On narrow screens, the inspector opens as a dismissible bottom sheet after a task or result is selected.
+- Results display source title, record title, excerpt, and match score on separate lines. Graph controls are hidden in results mode.
+- Controls use visible keyboard focus and reduced-motion preferences remain supported.
 
-The visual reference is a private local design asset and is not distributed with the plugin.
+## Language flow
 
-The implementation under review is:
+- `node scripts/install.mjs memorygraph@<marketplace-name>` asks for 中文 or English before running `codex plugin add`.
+- The choice is saved only after installation succeeds and is passed through MCP graph data to both the embedded widget and standalone snapshots.
+- The dashboard can switch language afterward, and the later choice survives a reload.
+- Native `codex plugin add` does not run a plugin-defined language prompt. If no installation preference exists, the first dashboard opening requires a language choice.
+- Interface controls, state labels, empty states, and accessibility labels are translated. Original task titles and conversation evidence retain their source language.
 
-- `assets/widget.html`
+## Checks completed
 
-## Implemented target characteristics
-
-- Evidence-archive three-column workspace: deep-indigo project index, cool grid canvas, and warm reading inspector.
-- 64 px application header, 272 px project rail, flexible graph canvas, and a 432 px default inspector that can be resized from 320–720 px when viewport space permits.
-- Search and graph controls use translucent floating surfaces; the selected view uses a single blue gradient accent.
-- Larger 276 × 148 px task cards with a provenance-colored top edge and stronger selection state.
-- Blue selected state, amber retrieval state, and neutral context state.
-- Dedicated "Source records / Memory candidates" inspector switch with counts.
-- Search-first ranked record view with a one-click switch back to the DAG.
-- Visible match evidence, literal highlighting, and local correctness feedback.
-- Candidate-memory confirmation/rejection controls and project-continuation actions.
-- Reading-first inspector typography: 13 px source content, 12.5 px metadata, and a 24 px detail title.
-- Mouse, pointer, and keyboard resizing for the desktop inspector; width persists locally and double-click restores the default.
-- Real transparent MemoryGraph mark served as a local MCP image resource.
-- 页面固定采用浅色背景；移动端保留相同的档案层级与阅读优先级。
-- Existing search, graph layers, Markdown rendering, node drag, source-task opening, and context inspection preserved.
-
-## Automated checks completed
-
-- Inline widget JavaScript parses successfully.
-- MCP protocol/resource probe passes, including the PNG mark resource.
-- Local incremental memory-index probe passes.
-
-## Blocking condition
-
-The matching user-opened local preview tab was claimed, but the Codex in-app browser rejected reloading its `file://` URL under the browser safety policy. No alternate browser path or policy workaround was attempted.
-
-## Visual checks still required
-
-At the same viewport as the selected target:
-
-- Compare overall column proportions and header height.
-- Check task-card density, title wrapping, and edge-label collisions.
-- Verify the generated mark crop at 28 × 28 px.
-- Verify the selected-card outline and amber match state.
-- Switch between "Source records" and "Memory candidates" and inspect count/empty states.
-- Switch between "Results" and "Graph"; test result selection, highlighted evidence, and zero-result state.
-- Exercise result feedback, candidate-memory review, and all four project-continuation actions.
-- Drag at least one node and confirm all connected edges remain anchored.
-- Drag the inspector divider to its minimum and maximum widths, verify text reflow, test arrow-key resizing, and double-click reset.
-- Inspect narrow-width behavior at the 900 px and 650 px breakpoints.
-
-## Final result
-
-Blocked until the updated local example is opened in the Codex in-app browser and a screenshot-based comparison can be completed.
+- Installer probe covers successful installation and a failed install preserving the prior preference.
+- MCP protocol probe confirms that the selected language reaches widget data.
+- Snapshot probe confirms the logo and character art are embedded in standalone HTML.
+- Local index probe and inline widget JavaScript syntax check pass.
+- Browser checks covered the character at desktop and narrow sizes, the first-open chooser, Chinese and English dashboards, saved language after reload, installation preference precedence, later manual language switching, desktop and narrow results, and opening and closing the narrow detail sheet.

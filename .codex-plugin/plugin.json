@@ -1,6 +1,6 @@
 {
   "name": "memorygraph",
-  "version": "0.1.0+codex.20260829123005",
+  "version": "0.3.0+codex.20261023",
   "description": "\u4e3a\u5355\u4e2a Codex \u9879\u76ee\u68c0\u7d22\u672c\u5730\u4f18\u5148\u3001\u53ef\u8ffd\u6eaf\u6765\u6e90\u7684\u8bb0\u5fc6\u56fe\u8c31\u3002",
   "author": {
     "name": "Local developer"
@@ -16,7 +16,7 @@
       "Interactive",
       "Read"
     ],
-    "brandColor": "#2F6BFF",
+    "brandColor": "#2863BF",
     "defaultPrompt": [
       "\u5728\u5f53\u524d\u9879\u76ee\u7684 MemoryGraph \u4e2d\u67e5\u627e\u539f\u59cb\u56de\u7b54",
       "\u7528\u4efb\u52a1 ID \u548c\u8f6e\u6b21 ID \u6838\u9a8c\u8fd9\u6761\u7ed3\u679c",

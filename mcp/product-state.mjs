@@ -1,5 +1,8 @@
 import {
   existsSync,
+  openSync,
+  closeSync,
+  unlinkSync,
   mkdirSync,
   readFileSync,
   renameSync,
@@ -34,6 +37,7 @@ function emptyState() {
     version: STATE_VERSION,
     feedback: [],
     memoryReviews: {},
+    reviewHistory: [],
   };
 }
 
@@ -46,16 +50,17 @@ export function loadProductState(filePath = defaultProductStatePath()) {
   if (!existsSync(readablePath)) return emptyState();
   try {
     const value = JSON.parse(readFileSync(readablePath, "utf8"));
-    if (value.version !== STATE_VERSION) return emptyState();
+    if (value.version !== STATE_VERSION) throw new Error("Unsupported state version");
     return {
       version: STATE_VERSION,
       feedback: Array.isArray(value.feedback) ? value.feedback : [],
       memoryReviews: value.memoryReviews && typeof value.memoryReviews === "object"
         ? value.memoryReviews
         : {},
+      reviewHistory: Array.isArray(value.reviewHistory) ? value.reviewHistory : [],
     };
-  } catch {
-    return emptyState();
+  } catch (error) {
+    throw new Error(`Cannot read saved MemoryGraph state; existing state was not overwritten: ${error.message}`);
   }
 }
 
@@ -64,6 +69,20 @@ function atomicWrite(filePath, value) {
   const temporary = `${filePath}.${process.pid}.tmp`;
   writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, "utf8");
   renameSync(temporary, filePath);
+}
+
+function updateState(filePath, update) {
+  mkdirSync(path.dirname(filePath), { recursive: true });
+  const lock = `${filePath}.lock`;
+  let descriptor;
+  try { descriptor = openSync(lock, "wx"); }
+  catch { throw new Error("Memory state is busy; retry after the other writer finishes"); }
+  try {
+    const state = loadProductState(filePath);
+    const result = update(state);
+    atomicWrite(filePath, state);
+    return result;
+  } finally { closeSync(descriptor); unlinkSync(lock); }
 }
 
 function normalizedText(value) {
@@ -83,7 +102,7 @@ export function recordRetrievalFeedback(input = {}, {
   now = new Date(),
 } = {}) {
   const verdict = input.verdict === "correct" ? "correct" :
-    input.verdict === "incorrect" ? "incorrect" : "";
+    input.verdict === "incorrect" ? "incorrect" : input.verdict === "cleared" ? "cleared" : "";
   const entry = {
     cwd: normalizedText(input.cwd),
     query: normalizedText(input.query),
@@ -98,14 +117,14 @@ export function recordRetrievalFeedback(input = {}, {
     throw new Error("cwd, query, recordId, and a valid verdict are required");
   }
 
-  const state = loadProductState(filePath);
-  const identity = feedbackIdentity(entry);
-  state.feedback = state.feedback
-    .filter((candidate) => feedbackIdentity(candidate) !== identity)
-    .concat(entry)
-    .slice(-FEEDBACK_LIMIT);
-  atomicWrite(filePath, state);
-  return entry;
+  return updateState(filePath, (state) => {
+    const identity = feedbackIdentity(entry);
+    state.feedback = state.feedback
+      .filter((candidate) => feedbackIdentity(candidate) !== identity)
+      .concat(verdict === "cleared" ? [] : [entry])
+      .slice(-FEEDBACK_LIMIT);
+    return entry;
+  });
 }
 
 export function reviewMemoryCandidate(input = {}, {
@@ -117,10 +136,11 @@ export function reviewMemoryCandidate(input = {}, {
     cwd: normalizedText(input.cwd),
     memoryId: normalizedText(input.memoryId),
     status: normalizedText(input.status),
-    content: normalizedText(input.content),
+    content: input.status === "corrected" ? normalizedText(input.content) : "",
     note: normalizedText(input.note),
     threadId: normalizedText(input.threadId),
     turnId: normalizedText(input.turnId),
+    supersededBy: input.status === "superseded" ? normalizedText(input.supersededBy) : "",
     updatedAt: now.toISOString(),
   };
   if (!review.cwd || !review.memoryId || !allowed.has(review.status)) {
@@ -130,16 +150,40 @@ export function reviewMemoryCandidate(input = {}, {
     throw new Error("Corrected memory requires replacement content");
   }
 
-  const state = loadProductState(filePath);
-  state.memoryReviews[review.memoryId] = review;
-  atomicWrite(filePath, state);
-  return review;
+  return updateState(filePath, (state) => {
+    const previous = state.memoryReviews[review.memoryId];
+    if (previous && previous.cwd !== review.cwd) throw new Error("Memory belongs to another project");
+    if (["confirmed", "superseded"].includes(review.status) && !review.content && previous?.content) review.content = previous.content;
+    const revision = previous?.revision || 0;
+    if (input.expectedRevision !== undefined && input.expectedRevision !== revision) {
+      throw new Error("Memory changed in another window; refresh before saving");
+    }
+    if (review.status === "superseded") {
+      if (!review.supersededBy) throw new Error("Choose a replacement memory");
+      const replacement = state.memoryReviews[review.supersededBy];
+      if (!replacement || replacement.cwd !== review.cwd || !["confirmed", "corrected"].includes(replacement.status)) {
+        throw new Error("Replacement must be a confirmed memory in this project");
+      }
+      const visited = new Set([review.memoryId]);
+      let target = review.supersededBy;
+      while (target) {
+        if (visited.has(target)) throw new Error("Replacement cycle is not allowed");
+        visited.add(target);
+        target = state.memoryReviews[target]?.supersededBy;
+      }
+    }
+    review.revision = revision + 1;
+    state.reviewHistory.push({ ...review, previous: previous || null });
+    state.memoryReviews[review.memoryId] = review;
+    return review;
+  });
 }
 
 export function applyProductState(graph, {
   filePath = defaultProductStatePath(),
+  state: providedState,
 } = {}) {
-  const state = loadProductState(filePath);
+  const state = providedState || loadProductState(filePath);
   const cwd = normalizedText(graph.scope || graph.nodes?.find((node) => node.kind === "project")?.cwd);
   const query = normalizedText(graph.query).toLocaleLowerCase();
   const feedback = new Map(
@@ -161,7 +205,7 @@ export function applyProductState(graph, {
       return {
         ...node,
         retrievalOriginalScore: originalScore,
-        matchScore: adjustedScore,
+        matchScore: node.retrievalScoreApplied ? originalScore : adjustedScore,
         userFeedback: entry.verdict,
         feedbackAt: entry.createdAt,
       };
@@ -171,12 +215,15 @@ export function applyProductState(graph, {
       if (!review || normalizedText(review.cwd) !== cwd) return node;
       return {
         ...node,
-        content: review.status === "corrected" && review.content
+        content: ["corrected", "confirmed", "superseded"].includes(review.status) && review.content
           ? review.content
           : node.content,
         memoryStatus: review.status,
         reviewNote: review.note,
         reviewedAt: review.updatedAt,
+        reviewRevision: review.revision || 0,
+        supersededBy: review.supersededBy || "",
+        reviewHistory: state.reviewHistory.filter((item) => item.cwd === cwd && item.memoryId === node.id).slice(-20),
       };
     }
     return node;

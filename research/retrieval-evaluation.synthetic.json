@@ -1,0 +1,353 @@
+{
+  "kind": "synthetic-regression-only",
+  "note": "Synthetic results do not establish real-user accuracy or an advantage over native search. Timing excludes indexing and UI.",
+  "generatedAt": "2026-10-23T03:33:38.392Z",
+  "caseCount": 48,
+  "top5": {
+    "passed": 39,
+    "total": 39
+  },
+  "noAnswer": {
+    "passed": 9,
+    "total": 9
+  },
+  "warmSearchP95Ms": 1.58,
+  "results": [
+    {
+      "id": "prompt-0",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 3.54
+    },
+    {
+      "id": "prompt-1",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.2
+    },
+    {
+      "id": "prompt-2",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.7
+    },
+    {
+      "id": "prompt-3",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.16
+    },
+    {
+      "id": "prompt-4",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.24
+    },
+    {
+      "id": "prompt-5",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.14
+    },
+    {
+      "id": "prompt-6",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.73
+    },
+    {
+      "id": "prompt-7",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.37
+    },
+    {
+      "id": "prompt-8",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.9
+    },
+    {
+      "id": "prompt-9",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.72
+    },
+    {
+      "id": "prompt-10",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.92
+    },
+    {
+      "id": "prompt-11",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.69
+    },
+    {
+      "id": "prompt-12",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.81
+    },
+    {
+      "id": "prompt-13",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.72
+    },
+    {
+      "id": "prompt-14",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.68
+    },
+    {
+      "id": "prompt-15",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.8
+    },
+    {
+      "id": "prompt-16",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.64
+    },
+    {
+      "id": "prompt-17",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.89
+    },
+    {
+      "id": "prompt-18",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.73
+    },
+    {
+      "id": "prompt-19",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.7
+    },
+    {
+      "id": "prompt-20",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.85
+    },
+    {
+      "id": "prompt-21",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.05
+    },
+    {
+      "id": "prompt-22",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.04
+    },
+    {
+      "id": "prompt-23",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.26
+    },
+    {
+      "id": "prompt-24",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.58
+    },
+    {
+      "id": "answer-0",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.55
+    },
+    {
+      "id": "answer-1",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.77
+    },
+    {
+      "id": "answer-2",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.93
+    },
+    {
+      "id": "answer-3",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.69
+    },
+    {
+      "id": "answer-4",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.78
+    },
+    {
+      "id": "answer-5",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.13
+    },
+    {
+      "id": "answer-6",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.82
+    },
+    {
+      "id": "answer-7",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.92
+    },
+    {
+      "id": "answer-8",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.42
+    },
+    {
+      "id": "answer-9",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.86
+    },
+    {
+      "id": "alias-zh",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.01
+    },
+    {
+      "id": "alias-en",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.3
+    },
+    {
+      "id": "archive",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 0.27
+    },
+    {
+      "id": "archive-filter",
+      "hasAnswer": false,
+      "passed": true,
+      "rank": null,
+      "elapsedMs": 0.25
+    },
+    {
+      "id": "long-tail",
+      "hasAnswer": true,
+      "passed": true,
+      "rank": 1,
+      "elapsedMs": 1.17
+    },
+    {
+      "id": "negative-0",
+      "hasAnswer": false,
+      "passed": true,
+      "rank": null,
+      "elapsedMs": 0.28
+    },
+    {
+      "id": "negative-1",
+      "hasAnswer": false,
+      "passed": true,
+      "rank": null,
+      "elapsedMs": 0.28
+    },
+    {
+      "id": "negative-2",
+      "hasAnswer": false,
+      "passed": true,
+      "rank": null,
+      "elapsedMs": 0.38
+    },
+    {
+      "id": "negative-3",
+      "hasAnswer": false,
+      "passed": true,
+      "rank": null,
+      "elapsedMs": 0.27
+    },
+    {
+      "id": "negative-4",
+      "hasAnswer": false,
+      "passed": true,
+      "rank": null,
+      "elapsedMs": 0.33
+    },
+    {
+      "id": "negative-5",
+      "hasAnswer": false,
+      "passed": true,
+      "rank": null,
+      "elapsedMs": 0.42
+    },
+    {
+      "id": "negative-6",
+      "hasAnswer": false,
+      "passed": true,
+      "rank": null,
+      "elapsedMs": 0.27
+    },
+    {
+      "id": "negative-7",
+      "hasAnswer": false,
+      "passed": true,
+      "rank": null,
+      "elapsedMs": 0.4
+    }
+  ]
+}
